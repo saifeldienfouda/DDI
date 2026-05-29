@@ -10,9 +10,7 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-import seaborn as sns
 
 
 class DrugInteractionDataset(Dataset):
@@ -234,6 +232,8 @@ class DDIModelTrainer:
     
     def plot_confusion_matrix(self, cm, classes):
         """Plot confusion matrix"""
+        import matplotlib.pyplot as plt
+        import seaborn as sns
         plt.figure(figsize=(10, 8))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
                     xticklabels=classes, yticklabels=classes)
@@ -247,6 +247,7 @@ class DDIModelTrainer:
     
     def plot_training_history(self):
         """Plot training history"""
+        import matplotlib.pyplot as plt
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
         
         # Loss plot
