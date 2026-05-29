@@ -21,6 +21,7 @@ Backend/data/*.npy
 Backend/data/*.npz
 Backend/data/*.h5
 Backend/data/*.hdf5
+Backend/models/data/
 
 # Allow preprocessor (needed for deployment)
 !Backend/data/preprocessor.pkl

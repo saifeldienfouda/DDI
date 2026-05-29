@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 class ChatService {
   final String baseUrl;
 
-  ChatService({this.baseUrl = AppConstants.apiBaseUrl});
+  ChatService({String? baseUrl}) : baseUrl = baseUrl ?? AppConstants.apiBaseUrl;
 
   /// Generate initial bilingual summary when chat opens
   Future<Map<String, dynamic>> generateSummary({

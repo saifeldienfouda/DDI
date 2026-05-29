@@ -1,34 +1,44 @@
 """
-Gemini AI Service for Chat Assistant
+Cohere AI Service for Chat Assistant
 Provides bilingual (Arabic/English) chat support for DDI results
+
+This service is a drop-in replacement for the previous Gemini-based implementation.
 """
 
 import os
 import json
 from typing import List, Dict, Optional
-import google.generativeai as genai
 from datetime import datetime
+
+import cohere
 
 
 class GeminiChatService:
-    """Service for handling AI chat with Gemini 2.5 Flash"""
+    """
+    Service for handling AI chat using Cohere (command-r model by default).
+
+    NOTE: Kept the class name `GeminiChatService` so that existing imports
+    in `main_with_firebase.py` continue to work without changes.
+    """
     
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize Gemini service
+        Initialize Cohere service
         
         Args:
-            api_key: Gemini API key (if None, reads from env)
+            api_key: Cohere API key (if None, reads from env `COHERE_API_KEY`)
         """
-        self.api_key = api_key or os.getenv('GEMINI_API_KEY')
+        # Prefer explicit api_key, otherwise read from env
+        self.api_key = api_key or os.getenv('COHERE_API_KEY')
         if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
+            raise ValueError("COHERE_API_KEY not found in environment variables")
         
-        # Configure Gemini
-        genai.configure(api_key=self.api_key)
+        # Initialize Cohere client
+        self.client = cohere.Client(self.api_key)
         
-        # Initialize model
-        self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
+        # Default model - can be overridden via env if needed.
+        # Latest recommended chat model: `command-a-03-2025`
+        self.model = os.getenv('COHERE_MODEL', 'command-a-03-2025')
         
         # System prompt for DDI assistant
         self.system_prompt = """You are a helpful medical AI assistant specialized in Drug-Drug Interactions (DDI).
@@ -99,14 +109,11 @@ Format your response with:
 🇦🇪 Arabic:
 [Your Arabic summary here]"""
 
-            # Generate response
-            response = self.model.generate_content(
-                prompt,
-                generation_config={
-                    'temperature': 0.7,
-                    'top_p': 0.9,
-                    'max_output_tokens': 1024,
-                }
+            # Generate response using Cohere
+            response = self.client.chat(
+                model=self.model,
+                message=prompt,
+                temperature=0.7,
             )
             
             # Parse response
@@ -170,33 +177,26 @@ Format your response with:
 
 The user is asking about this specific interaction. Please provide helpful, accurate information in both Arabic and English."""
 
-            # Build chat history for context
-            conversation = []
+            # Build a simple conversation history string (Cohere can take previous messages,
+            # but to keep it simple and robust we just include recent turns in the prompt)
+            history_text = ""
             if chat_history:
                 for msg in chat_history[-5:]:  # Last 5 messages for context
-                    role = "user" if msg.get('role') == 'user' else "model"
-                    conversation.append({
-                        'role': role,
-                        'parts': [msg.get('content', '')]
-                    })
+                    role = "User" if msg.get('role') == 'user' else "Assistant"
+                    content = msg.get('content', '')
+                    history_text += f"{role}: {content}\n"
             
-            # Add current message
-            conversation.append({
-                'role': 'user',
-                'parts': [f"{context}\n\nUser question: {message}"]
-            })
+            full_prompt = (
+                f"{self.system_prompt}\n\n"
+                f"{context}\n\n"
+                f"{history_text}User: {message}\nAssistant:"
+            )
             
-            # Start chat session
-            chat = self.model.start_chat(history=conversation[:-1])
-            
-            # Send message
-            response = chat.send_message(
-                conversation[-1]['parts'][0],
-                generation_config={
-                    'temperature': 0.8,
-                    'top_p': 0.9,
-                    'max_output_tokens': 1024,
-                }
+            # Send message via Cohere
+            response = self.client.chat(
+                model=self.model,
+                message=full_prompt,
+                temperature=0.8,
             )
             
             return {

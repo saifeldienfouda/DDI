@@ -5,8 +5,9 @@ pydantic==2.5.0
 python-multipart==0.0.6
 
 # Machine Learning
-torch==2.1.0
-numpy==1.24.3
+# torch installed separately (see setup instructions)
+# torchvision installed separately (see setup instructions)
+numpy==1.26.4
 pandas==2.0.3
 scikit-learn==1.3.2
 
@@ -16,12 +17,12 @@ rdkit==2023.9.1
 # Firebase
 firebase-admin==6.2.0
 
-# AI/LLM
-google-generativeai==0.3.2
-
 # Utilities
 python-dotenv==1.0.0
 requests==2.31.0
+
+# AI/LLM (Cohere)
+cohere>=5.0.0
 
 # CORS and Auth
 python-jose[cryptography]==3.3.0

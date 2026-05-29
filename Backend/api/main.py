@@ -196,11 +196,16 @@ async def check_interaction(drug_pair: DrugPair):
             is_smiles=drug_pair.use_smiles
         )
         
-        # Generate description and mechanism based on severity
-        description, mechanism = _generate_interaction_info(
-            result['predicted_class'],
-            result['drug_pair']
-        )
+        # Generate description and mechanism based on severity, unless overridden
+        description = result.get('description')
+        mechanism = result.get('mechanism')
+        if not description or not mechanism:
+            generic_desc, generic_mech = _generate_interaction_info(
+                result['predicted_class'],
+                result['drug_pair']
+            )
+            description = description or generic_desc
+            mechanism = mechanism or generic_mech
         
         # Format response
         response = InteractionResponse(

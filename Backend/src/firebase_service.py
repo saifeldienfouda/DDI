@@ -42,8 +42,40 @@ class FirebaseService:
                 else:
                     # Use credentials file path
                     if credentials_path is None:
-                        credentials_path = os.getenv('FIREBASE_CREDENTIALS_PATH', 
-                                                    os.path.join(os.path.dirname(__file__), '..', 'firebase-credentials.json'))
+                        # Get path from environment variable first
+                        env_path = os.getenv('FIREBASE_CREDENTIALS_PATH')
+                        if env_path:
+                            credentials_path = env_path
+                        else:
+                            # Calculate Backend directory path
+                            # __file__ is src/firebase_service.py, so go up one level
+                            backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                            credentials_path = os.path.join(backend_dir, 'firebase-credentials.json')
+                            # Normalize path (handles .. and . correctly)
+                            credentials_path = os.path.normpath(credentials_path)
+                            # Convert to absolute path
+                            credentials_path = os.path.abspath(credentials_path)
+                    
+                    # Ensure path is absolute and normalize it (fix any Linux/Windows path issues)
+                    credentials_path = os.path.normpath(credentials_path)
+                    if not os.path.isabs(credentials_path):
+                        credentials_path = os.path.abspath(credentials_path)
+                    
+                    # Debug: Print the resolved path
+                    print(f"🔍 Looking for Firebase credentials at: {credentials_path}")
+                    print(f"🔍 File exists: {os.path.exists(credentials_path)}")
+                    
+                    # If file doesn't exist, try alternative locations
+                    if not os.path.exists(credentials_path):
+                        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                        alt_path = os.path.abspath(os.path.join(backend_dir, 'firebase-credentials.json'))
+                        if os.path.exists(alt_path):
+                            credentials_path = alt_path
+                            print(f"🔍 Found credentials at alternative path: {credentials_path}")
+                    
+                    if not os.path.exists(credentials_path):
+                        raise FileNotFoundError(f"Firebase credentials file not found at: {credentials_path}")
+                    
                     cred = credentials.Certificate(credentials_path)
                     print(f"✅ Using Firebase credentials from: {credentials_path}")
                 
