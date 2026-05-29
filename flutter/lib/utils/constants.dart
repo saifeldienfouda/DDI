@@ -1,4 +1,4 @@
-﻿import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppConstants {
@@ -24,22 +24,12 @@ class AppConstants {
   static const bool usePhysicalDeviceBackend = true;
 
   // Production URL (for deployed backend - leave as is for now)
-  static const String _productionUrl = 'https://your-backend-domain.com'; // Not used yet
+  static const String _productionUrl = 'https://ddi-sfh0.onrender.com';
 
   // Get base URL based on environment
   static String get baseUrl {
-    if (kIsWeb) {
-      return _simulatorUrl;
-    }
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return usePhysicalDeviceBackend ? _physicalDeviceUrl : _emulatorUrl;
-    }
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      return _simulatorUrl;
-    }
-
-    return _emulatorUrl;
+    // Connect directly to the production cloud backend (Render)
+    return _productionUrl;
   }
   
   // Helper method to get physical device URL (for APK builds)
