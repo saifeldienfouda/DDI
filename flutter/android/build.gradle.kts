@@ -16,7 +16,7 @@ subprojects {
     project.evaluationDependsOn(":app")
     
     // Disable AAR metadata check tasks that cause issues with mismatched Android Gradle Plugin versions
-    tasks.whenTaskAdded {
+    tasks.configureEach {
         if (name.contains("CheckAarMetadata", ignoreCase = true)) {
             enabled = false
         }
