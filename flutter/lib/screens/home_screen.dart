@@ -5,8 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:ui';
 import '../providers/interaction_provider.dart';
+import '../providers/theme_provider.dart';
+import '../providers/language_provider.dart';
 import '../widgets/drug_search_field.dart';
 import '../utils/theme.dart';
+import '../utils/localization.dart';
 import 'result_screen.dart';
 import 'history_screen.dart';
 
@@ -157,21 +160,22 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Predict DDIs',
-                            style: TextStyle(
-                              fontSize: 26,
+                          Text(
+                            context.translate('app_title'),
+                            style: const TextStyle(
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
                           Text(
-                            'AI-Powered Analysis',
-                            style: TextStyle(
-                              fontSize: 12,
+                            context.translate('search_subtitle'),
+                            style: const TextStyle(
+                              fontSize: 11,
                               color: Colors.white70,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w400,
                             ),
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -183,21 +187,56 @@ class _HomeScreenState extends State<HomeScreen>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Theme Toggle Button
+                  IconButton(
+                    icon: Icon(
+                      Provider.of<ThemeProvider>(context).isDarkMode
+                          ? Icons.wb_sunny_rounded
+                          : Icons.nightlight_round,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      final themeProv = Provider.of<ThemeProvider>(context, listen: false);
+                      themeProv.toggleTheme(!themeProv.isDarkMode);
+                    },
+                    tooltip: context.translate('theme_dark'),
+                  ),
+                  // Language Toggle Button
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () {
+                      Provider.of<LanguageProvider>(context, listen: false).toggleLanguage();
+                    },
+                    child: Text(
+                      context.isArabic ? 'EN' : 'AR',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
                   IconButton(
                     icon: const Icon(Icons.history_rounded,
-                        color: Colors.white, size: 26),
+                        color: Colors.white, size: 24),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const HistoryScreen()),
                       );
                     },
-                    tooltip: 'View History',
+                    tooltip: context.translate('history_tab'),
                   ),
                   PopupMenuButton<String>(
                     icon: const Icon(Icons.account_circle_rounded,
-                        color: Colors.white, size: 26),
-                    tooltip: 'Account',
+                        color: Colors.white, size: 24),
+                    tooltip: context.translate('settings_title'),
                     onSelected: (value) async {
                       if (value == 'signout') {
                         await FirebaseAuth.instance.signOut();
@@ -212,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                user?.displayName ?? 'Guest User',
+                                user?.displayName ?? (context.isArabic ? 'مستخدم زائر' : 'Guest User'),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -230,13 +269,13 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                         const PopupMenuDivider(),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'signout',
                           child: Row(
                             children: [
-                              Icon(Icons.logout, size: 20),
-                              SizedBox(width: 12),
-                              Text('Sign Out'),
+                              const Icon(Icons.logout, size: 20),
+                              const SizedBox(width: 12),
+                              Text(context.translate('logout')),
                             ],
                           ),
                         ),
@@ -279,7 +318,9 @@ class _HomeScreenState extends State<HomeScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        prov.isServerOnline ? 'Server Online' : 'Server Offline',
+                        prov.isServerOnline 
+                            ? context.translate('server_online') 
+                            : context.translate('server_offline'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -288,8 +329,8 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       Text(
                         prov.isServerOnline
-                            ? 'Ready to analyze interactions'
-                            : 'Please start the backend server',
+                            ? (context.isArabic ? 'جاهز لتحليل التفاعلات الدوائية سريرياً' : 'Ready to analyze interactions')
+                            : (context.isArabic ? 'يرجى التحقق من الاتصال بالشبكة السحابية' : 'Please verify cloud server connection'),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -334,6 +375,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildDrugInputSection(InteractionProvider prov) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: BackdropFilter(
@@ -341,15 +383,15 @@ class _HomeScreenState extends State<HomeScreen>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: isDark ? const Color(0xFF1E293B).withOpacity(0.9) : Colors.white.withOpacity(0.9),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white.withOpacity(0.3),
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -360,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               // Drug A Input
               DrugSearchField(
-                label: 'First Drug (e.g., Warfarin)',
+                label: context.translate('enter_drug_a'),
                 onDrugSelected: (drug) => setState(() => _drugA = drug),
               ),
 
@@ -368,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen>
 
               // Drug B Input
               DrugSearchField(
-                label: 'Second Drug (e.g., Ibuprofen)',
+                label: context.translate('enter_drug_b'),
                 onDrugSelected: (drug) => setState(() => _drugB = drug),
               ),
 
@@ -421,14 +463,14 @@ class _HomeScreenState extends State<HomeScreen>
                             fit: BoxFit.contain,
                           ),
                         )
-                      : const Row(
+                      : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.analytics_rounded, size: 22),
-                            SizedBox(width: 10),
+                            const Icon(Icons.analytics_rounded, size: 22),
+                            const SizedBox(width: 10),
                             Text(
-                              'Analyze Interaction',
-                              style: TextStyle(
+                              context.translate('check_btn'),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -446,24 +488,25 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildQuickActions() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 4, bottom: 12),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
-            'Quick Actions',
+            context.translate('quick_actions'),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
         ),
         _buildActionCard(
           icon: Icons.history_rounded,
-          title: 'View History',
-          subtitle: 'See your past drug interaction checks',
+          title: context.translate('history_tab'),
+          subtitle: context.isArabic ? 'عرض سجل عمليات الفحص السابقة للمريض' : 'See your past drug interaction checks',
           color: const Color(0xFF3B82F6),
           onTap: () {
             Navigator.push(
@@ -518,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ],
             ),
-            child: Column(
+            child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -540,25 +583,31 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   child: Icon(icon, color: Colors.white, size: 32),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                  ),
-                ),
+                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 16),
               ],
             ),
           ),
@@ -568,12 +617,13 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildDisclaimer() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(0.08),
+        color: Colors.amber.withOpacity(isDark ? 0.12 : 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.amber.withOpacity(0.3), width: 2),
+        border: Border.all(color: Colors.amber.withOpacity(isDark ? 0.4 : 0.3), width: 2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -586,29 +636,29 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: Icon(
               Icons.warning_amber_rounded,
-              color: Colors.amber[800],
+              color: Colors.amber[isDark ? 300 : 800],
               size: 24,
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Medical Disclaimer',
+                  context.translate('medical_disclaimer'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: isDark ? Colors.amber[200] : Colors.black87,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'For healthcare professionals only. Not for patient self-diagnosis. Always consult with a qualified healthcare provider.',
+                  context.translate('consult_disclaimer'),
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white70 : Colors.black87,
                     height: 1.5,
                   ),
                 ),
