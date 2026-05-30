@@ -83,6 +83,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
   OverlayEntry _createOverlay() {
     final renderBox = context.findRenderObject() as RenderBox;
     final size = renderBox.size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return OverlayEntry(
       builder: (context) => Positioned(
@@ -94,11 +95,16 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
           child: Material(
             elevation: 8,
             borderRadius: BorderRadius.circular(12),
+            color: Colors.transparent,
             child: Container(
               constraints: const BoxConstraints(maxHeight: 260),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200,
+                  width: 1,
+                ),
               ),
               child: _suggestions.isEmpty
                   ? const SizedBox.shrink()
@@ -106,7 +112,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       itemCount: _suggestions.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? Colors.white10 : Colors.grey.shade200),
                       itemBuilder: (context, index) {
                         final s = _suggestions[index];
                         return InkWell(
@@ -124,7 +130,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
+                                    color: isDark ? Colors.blue.withOpacity(0.15) : Colors.blue.shade50,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.medication, color: Colors.blue, size: 20),
@@ -134,14 +140,26 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(s, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      Text(
+                                        s, 
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: isDark ? Colors.white : Colors.black87,
+                                        ),
+                                      ),
                                       const SizedBox(height: 4),
-                                      Text('Drug class: NSAID', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                                      Text(
+                                        'Drug class: NSAID', 
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white60 : Colors.grey.shade600, 
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                const Icon(Icons.chevron_right, color: Colors.grey),
+                                Icon(Icons.chevron_right, color: isDark ? Colors.white30 : Colors.grey),
                               ],
                             ),
                           ),
@@ -165,26 +183,32 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
     super.dispose();
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return CompositedTransformTarget(
       link: _layerLink,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.label, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            widget.label, 
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: _controller,
             focusNode: _focusNode,
             onChanged: _onChanged,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: widget.label,
+              hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               prefixIcon: const Padding(
                 padding: EdgeInsets.only(left: 12, right: 8),
                 child: Icon(Icons.medication_outlined, color: Colors.blue),
@@ -194,7 +218,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                   ? const Padding(padding: EdgeInsets.all(12.0), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))
                   : (_controller.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: Icon(Icons.clear, color: isDark ? Colors.white60 : Colors.black54),
                           onPressed: () {
                             _controller.clear();
                             widget.onDrugSelected('');
@@ -202,7 +226,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                             _removeOverlay();
                           },
                         )
-                      : const Icon(Icons.search)),
+                      : Icon(Icons.search, color: isDark ? Colors.white60 : Colors.black54)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

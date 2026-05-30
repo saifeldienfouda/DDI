@@ -66,20 +66,16 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final prov = Provider.of<InteractionProvider>(context);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      body: AnimatedContainer(
-        duration: const Duration(seconds: 3),
+      body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-              Color(0xFFF093FB),
-              Color(0xFFF5576C),
-            ],
-            stops: const [0.0, 0.4, 0.7, 1.0],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+                : [const Color(0xFFEEF2FF), const Color(0xFFF8FAFC)],
           ),
         ),
         child: SafeArea(

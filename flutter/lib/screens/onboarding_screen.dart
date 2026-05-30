@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../utils/localization.dart';
 import 'terms_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -13,33 +14,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<OnboardingPage> _pages = [
-    OnboardingPage(
-      icon: Icons.psychology_rounded,
-      title: 'AI-Powered Analysis',
-      description: 'Advanced machine learning algorithms analyze drug interactions with 93.8% accuracy',
-      gradient: const [Color(0xFF667eea), Color(0xFF764ba2)],
-    ),
-    OnboardingPage(
-      icon: Icons.medication_rounded,
-      title: '4,286+ Drugs Database',
-      description: 'Comprehensive database covering thousands of medications and their interactions',
-      gradient: const [Color(0xFFf093fb), Color(0xFFf5576c)],
-    ),
-    OnboardingPage(
-      icon: Icons.speed_rounded,
-      title: 'Instant Results',
-      description: 'Get detailed interaction analysis in less than a second with cloud sync',
-      gradient: const [Color(0xFF4facfe), Color(0xFF00f2fe)],
-    ),
-    OnboardingPage(
-      icon: Icons.cloud_done_rounded,
-      title: 'Cloud Backup',
-      description: 'Your interaction history is safely stored and synced across all your devices',
-      gradient: const [Color(0xFF43e97b), Color(0xFF38f9d7)],
-    ),
-  ];
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -48,6 +22,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isAr = context.isArabic;
+
+    final List<OnboardingPage> pages = [
+      OnboardingPage(
+        icon: Icons.psychology_rounded,
+        title: isAr ? 'تحليل سريري بالذكاء الاصطناعي' : 'AI-Powered Analysis',
+        description: isAr 
+            ? 'تقوم خوارزميات الذكاء الاصطناعي المتقدمة بفحص التفاعلات الدوائية بدقة ٩٣.٨٪.' 
+            : 'Advanced machine learning algorithms analyze drug interactions with 93.8% accuracy',
+        gradient: isDark 
+            ? const [Color(0xFF0F172A), const Color(0xFF1E293B)] 
+            : const [Color(0xFF667eea), const Color(0xFF764ba2)],
+      ),
+      OnboardingPage(
+        icon: Icons.medication_rounded,
+        title: isAr ? 'أكثر من ٤,٢00 دواء' : '4,286+ Drugs Database',
+        description: isAr 
+            ? 'قاعدة بيانات طبية شاملة تغطي آلاف الأدوية والمواد الفعالة وتفاعلاتها.' 
+            : 'Comprehensive database covering thousands of medications and their interactions',
+        gradient: isDark 
+            ? const [Color(0xFF1E293B), const Color(0xFF312E81)] 
+            : const [Color(0xFFf093fb), const Color(0xFFf5576c)],
+      ),
+      OnboardingPage(
+        icon: Icons.speed_rounded,
+        title: isAr ? 'نتائج فورية ولحظية' : 'Instant Results',
+        description: isAr 
+            ? 'احصل على تحليل تفصيلي للتفاعل الدوائي في أقل من ثانية بدقة متناهية.' 
+            : 'Get detailed interaction analysis in less than a second with cloud sync',
+        gradient: isDark 
+            ? const [Color(0xFF0F172A), const Color(0xFF1E1B4B)] 
+            : const [Color(0xFF4facfe), const Color(0xFF00f2fe)],
+      ),
+      OnboardingPage(
+        icon: Icons.cloud_done_rounded,
+        title: isAr ? 'مزامنة سحابية آمنة' : 'Cloud Backup',
+        description: isAr 
+            ? 'يتم حفظ وتشفير سجل عمليات الفحص الخاصة بك سحابياً للوصول إليها بأمان.' 
+            : 'Your interaction history is safely stored and synced across all your devices',
+        gradient: isDark 
+            ? const [Color(0xFF1E293B), const Color(0xFF0F172A)] 
+            : const [Color(0xFF43e97b), const Color(0xFF38f9d7)],
+      ),
+    ];
+
     return Scaffold(
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
@@ -56,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: _pages[_currentPage].gradient,
+            colors: pages[_currentPage].gradient,
           ),
         ),
         child: SafeArea(
@@ -64,14 +84,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               // Skip button
               Align(
-                alignment: Alignment.topRight,
+                alignment: isAr ? Alignment.topLeft : Alignment.topRight,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: TextButton(
                     onPressed: () => _navigateToTerms(),
-                    child: const Text(
-                      'Skip',
-                      style: TextStyle(
+                    child: Text(
+                      isAr ? 'تخطي' : 'Skip',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -90,9 +110,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _currentPage = index;
                     });
                   },
-                  itemCount: _pages.length,
+                  itemCount: pages.length,
                   itemBuilder: (context, index) {
-                    return _buildPage(_pages[index]);
+                    return _buildPage(pages[index]);
                   },
                 ),
               ),
@@ -101,7 +121,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
-                  _pages.length,
+                  pages.length,
                   (index) => _buildIndicator(index == _currentPage),
                 ),
               ),
@@ -128,7 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         color: Colors.transparent,
                         child: InkWell(
                           onTap: () {
-                            if (_currentPage == _pages.length - 1) {
+                            if (_currentPage == pages.length - 1) {
                               _navigateToTerms();
                             } else {
                               _pageController.nextPage(
@@ -142,9 +162,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 18),
                             child: Center(
                               child: Text(
-                                _currentPage == _pages.length - 1
-                                    ? 'Get Started'
-                                    : 'Next',
+                                _currentPage == pages.length - 1
+                                    ? (isAr ? 'ابدأ الآن' : 'Get Started')
+                                    : (isAr ? 'التالي' : 'Next'),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,

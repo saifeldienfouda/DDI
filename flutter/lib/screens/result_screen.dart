@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui';
+import 'package:provider/provider.dart';
 import '../models/interaction_result.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
+import '../utils/localization.dart';
+import '../providers/theme_provider.dart';
+import '../providers/language_provider.dart';
 import 'chat_screen.dart';
 import 'dart:math' as math;
 
@@ -82,14 +86,14 @@ class _ResultScreenState extends State<ResultScreen>
     switch (widget.result.severity.toLowerCase()) {
       case 'severe':
       case 'high':
-        return 'Severe Interaction';
+        return context.isArabic ? 'تفاعل دوائي خطير جداً' : 'Severe Interaction';
       case 'moderate':
-        return 'Moderate Interaction';
+        return context.isArabic ? 'تفاعل دوائي متوسط' : 'Moderate Interaction';
       case 'none':
       case 'low':
-        return 'No Significant Interaction';
+        return context.isArabic ? 'لا توجد خطورة تذكر' : 'No Significant Interaction';
       default:
-        return 'Unknown';
+        return widget.result.severity;
     }
   }
 
@@ -97,21 +101,42 @@ class _ResultScreenState extends State<ResultScreen>
     switch (widget.result.severity.toLowerCase()) {
       case 'severe':
       case 'high':
-        return 'Immediate medical consultation recommended';
+        return context.isArabic 
+            ? 'يوصى باستشارة الطبيب المعالج فوراً وإيجاد بديل آمن' 
+            : 'Immediate medical consultation recommended';
       case 'moderate':
-        return 'Caution advised - Monitor for side effects';
+        return context.isArabic 
+            ? 'يرجى توخي الحذر ومراقبة أي أعراض جانبية طارئة' 
+            : 'Caution advised - Monitor for side effects';
       case 'none':
       case 'low':
-        return 'Safe to use together with normal precautions';
+        return context.isArabic 
+            ? 'آمن للاستخدام معاً مع اتخاذ الاحتياطات الطبية المعتادة' 
+            : 'Safe to use together with normal precautions';
       default:
         return '';
+    }
+  }
+
+  String _translateSeverity(String severity) {
+    switch (severity.toLowerCase()) {
+      case 'severe':
+      case 'high':
+        return context.translate('severity_high');
+      case 'moderate':
+        return context.translate('severity_moderate');
+      case 'none':
+      case 'low':
+        return context.translate('severity_low');
+      default:
+        return severity;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final color = _getSeverityColor();
-    final screenHeight = MediaQuery.of(context).size.height;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: Container(
@@ -120,110 +145,118 @@ class _ResultScreenState extends State<ResultScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withOpacity(0.12),
-              Colors.white,
-              color.withOpacity(0.06),
+              color.withOpacity(isDark ? 0.2 : 0.12),
+              Theme.of(context).scaffoldBackgroundColor,
+              color.withOpacity(isDark ? 0.1 : 0.06),
             ],
             stops: const [0.0, 0.5, 1.0],
           ),
         ),
         child: CustomScrollView(
-        slivers: [
-          // Modern App Bar
-          SliverAppBar(
-            expandedHeight: 80,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            systemOverlayStyle: SystemUiOverlayStyle.dark,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share_rounded, color: Colors.black87),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Share feature coming soon'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
+          slivers: [
+            // Modern App Bar
+            SliverAppBar(
+              expandedHeight: 80,
+              floating: false,
+              pinned: true,
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+              leading: IconButton(
+                icon: Icon(
+                  context.isArabic ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded, 
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                onPressed: () => Navigator.of(context).pop(),
               ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              centerTitle: false,
-              titlePadding: const EdgeInsets.only(left: 56, bottom: 16),
-              title: const Text(
-                'Interaction Analysis',
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.share_rounded, color: isDark ? Colors.white : Colors.black87),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(context.isArabic ? 'ميزة المشاركة ستتوفر قريباً' : 'Share feature coming soon'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 8),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                titlePadding: EdgeInsets.only(
+                  left: context.isArabic ? 16 : 56, 
+                  right: context.isArabic ? 56 : 16, 
+                  bottom: 16,
+                ),
+                title: Text(
+                  context.translate('interaction_analysis'),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Content
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Drug Pair Card with Animation
-                    ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: _buildDrugPairCard(),
-                    ),
-                    const SizedBox(height: 24),
+            // Content
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Drug Pair Card with Animation
+                      ScaleTransition(
+                        scale: _scaleAnimation,
+                        child: _buildDrugPairCard(),
+                      ),
+                      const SizedBox(height: 24),
 
-                    // Risk Score Circle
-                    _buildRiskScoreCard(color),
-                    const SizedBox(height: 24),
+                      // Risk Score Circle
+                      _buildRiskScoreCard(color),
+                      const SizedBox(height: 24),
 
-                    // Severity Alert
-                    _buildSeverityAlert(color),
-                    const SizedBox(height: 24),
+                      // Severity Alert
+                      _buildSeverityAlert(color),
+                      const SizedBox(height: 24),
 
-                    // Description Card
-                    _buildDescriptionCard(),
-                    const SizedBox(height: 16),
+                      // Description Card
+                      _buildDescriptionCard(),
+                      const SizedBox(height: 16),
 
-                    // Mechanism Card
-                    _buildMechanismCard(),
-                    const SizedBox(height: 16),
+                      // Mechanism Card
+                      _buildMechanismCard(),
+                      const SizedBox(height: 16),
 
-                    // Recommendations Card
-                    _buildRecommendationsCard(),
-                    const SizedBox(height: 16),
+                      // Recommendations Card
+                      _buildRecommendationsCard(),
+                      const SizedBox(height: 16),
 
-                    // Sources Card
-                    _buildSourcesCard(),
-                    const SizedBox(height: 24),
+                      // Sources Card
+                      _buildSourcesCard(),
+                      const SizedBox(height: 24),
 
-                    // Action Buttons
-                    _buildActionButtons(),
-                    const SizedBox(height: 20),
-                  ],
+                      // Action Buttons
+                      _buildActionButtons(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildDrugPairCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -231,13 +264,13 @@ class _ResultScreenState extends State<ResultScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.primaryColor.withOpacity(0.1),
-            AppTheme.primaryColor.withOpacity(0.05),
+            AppTheme.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
+            AppTheme.primaryColor.withOpacity(isDark ? 0.1 : 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(0.2),
+          color: AppTheme.primaryColor.withOpacity(isDark ? 0.3 : 0.2),
           width: 2,
         ),
       ),
@@ -259,13 +292,13 @@ class _ResultScreenState extends State<ResultScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Drug Combination',
+                  context.translate('drug_combination'),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black54,
+                    color: isDark ? Colors.white70 : Colors.black54,
                   ),
                 ),
               ),
@@ -274,23 +307,23 @@ class _ResultScreenState extends State<ResultScreen>
           const SizedBox(height: 16),
           Text(
             widget.result.drugPair,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               height: 1.3,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.access_time_rounded, size: 16, color: Colors.black45),
+              Icon(Icons.access_time_rounded, size: 16, color: isDark ? Colors.white38 : Colors.black45),
               const SizedBox(width: 6),
               Text(
                 _formatTimestamp(widget.result.timestamp),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Colors.black45,
+                  color: isDark ? Colors.white38 : Colors.black45,
                 ),
               ),
             ],
@@ -301,24 +334,21 @@ class _ResultScreenState extends State<ResultScreen>
   }
 
   Widget _buildRiskScoreCard(Color color) {
-    // Get the actual probability percentage for the predicted severity
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     double displayPercentage = widget.result.riskScore;
     
-    // If riskScore is very high (like 99.9), it's likely the probability
-    // Otherwise, try to get from probabilities map
     if (widget.result.riskScore < 50) {
-      // Risk score is 0-10 scale, convert to percentage estimate
       displayPercentage = widget.result.riskScore * 10;
     }
 
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: color.withOpacity(isDark ? 0.15 : 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -327,78 +357,74 @@ class _ResultScreenState extends State<ResultScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Circular Progress Indicator
           Center(
             child: SizedBox(
               width: 200,
               height: 200,
               child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Background circle
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: CircularProgressIndicator(
-                    value: 1.0,
-                    strokeWidth: 16,
-                    backgroundColor: color.withOpacity(0.1),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      color.withOpacity(0.1),
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: CircularProgressIndicator(
+                      value: 1.0,
+                      strokeWidth: 16,
+                      backgroundColor: color.withOpacity(isDark ? 0.2 : 0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        color.withOpacity(isDark ? 0.2 : 0.1),
+                      ),
                     ),
                   ),
-                ),
-                // Animated progress circle
-                TweenAnimationBuilder<double>(
-                  duration: const Duration(milliseconds: 1500),
-                  curve: Curves.easeOutCubic,
-                  tween: Tween(begin: 0.0, end: displayPercentage / 100),
-                  builder: (context, value, child) {
-                    return SizedBox(
-                      width: 200,
-                      height: 200,
-                      child: CircularProgressIndicator(
-                        value: value,
-                        strokeWidth: 16,
-                        backgroundColor: Colors.transparent,
-                        valueColor: AlwaysStoppedAnimation<Color>(color),
-                        strokeCap: StrokeCap.round,
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween(begin: 0.0, end: displayPercentage / 100),
+                    builder: (context, value, child) {
+                      return SizedBox(
+                        width: 200,
+                        height: 200,
+                        child: CircularProgressIndicator(
+                          value: value,
+                          strokeWidth: 16,
+                          backgroundColor: Colors.transparent,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                          strokeCap: StrokeCap.round,
+                        ),
+                      );
+                    },
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeOutCubic,
+                        tween: Tween(begin: 0.0, end: displayPercentage),
+                        builder: (context, value, child) {
+                          return Text(
+                            '${value.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                              height: 1,
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-                // Center content
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeOutCubic,
-                      tween: Tween(begin: 0.0, end: displayPercentage),
-                      builder: (context, value, child) {
-                        return Text(
-                          '${value.toStringAsFixed(1)}%',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: color,
-                            height: 1,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Confidence',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: color.withOpacity(0.8),
+                      const SizedBox(height: 8),
+                      Text(
+                        context.translate('confidence'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: color.withOpacity(0.8),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -406,26 +432,26 @@ class _ResultScreenState extends State<ResultScreen>
           Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(_getSeverityIcon(), color: color, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  widget.result.severity.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                    letterSpacing: 1.2,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_getSeverityIcon(), color: color, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    _translateSeverity(widget.result.severity).toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                      letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
         ],
@@ -492,7 +518,7 @@ class _ResultScreenState extends State<ResultScreen>
     return _buildInfoCard(
       icon: Icons.info_outline_rounded,
       iconColor: const Color(0xFF3B82F6),
-      title: 'Description',
+      title: context.isArabic ? 'شرح التفاعل الدوائي' : 'Description',
       content: widget.result.description,
     );
   }
@@ -501,20 +527,21 @@ class _ResultScreenState extends State<ResultScreen>
     return _buildInfoCard(
       icon: Icons.science_rounded,
       iconColor: const Color(0xFF8B5CF6),
-      title: 'Mechanism of Interaction',
+      title: context.translate('mechanism_title'),
       content: widget.result.mechanism,
     );
   }
 
   Widget _buildRecommendationsCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -538,11 +565,14 @@ class _ResultScreenState extends State<ResultScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Recommendations',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  context.translate('recommendations_title'),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ),
             ],
@@ -574,10 +604,10 @@ class _ResultScreenState extends State<ResultScreen>
                   Expanded(
                     child: Text(
                       entry.value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         height: 1.6,
-                        color: Colors.black87,
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ),
@@ -591,14 +621,15 @@ class _ResultScreenState extends State<ResultScreen>
   }
 
   Widget _buildSourcesCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -622,11 +653,14 @@ class _ResultScreenState extends State<ResultScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Data Sources',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  context.isArabic ? 'مصادر البيانات والمراجع' : 'Data Sources',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
               ),
             ],
@@ -646,9 +680,9 @@ class _ResultScreenState extends State<ResultScreen>
                   Expanded(
                     child: Text(
                       source,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: Colors.black87,
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ),
@@ -667,14 +701,15 @@ class _ResultScreenState extends State<ResultScreen>
     required String title,
     required String content,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -697,9 +732,10 @@ class _ResultScreenState extends State<ResultScreen>
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -708,13 +744,13 @@ class _ResultScreenState extends State<ResultScreen>
           const SizedBox(height: 16),
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               height: 1.6,
-              color: Colors.black87,
+              color: isDark ? Colors.white70 : Colors.black87,
               letterSpacing: 0.2,
             ),
-            textAlign: TextAlign.left,
+            textAlign: context.isArabic ? TextAlign.right : TextAlign.left,
           ),
         ],
       ),
@@ -724,7 +760,6 @@ class _ResultScreenState extends State<ResultScreen>
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // AI Assistant Button (Full Width)
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -733,16 +768,17 @@ class _ResultScreenState extends State<ResultScreen>
                 MaterialPageRoute(
                   builder: (context) => ChatScreen(
                     result: widget.result,
-                    userId: null, // Pass actual userId if available
+                    userId: null,
                   ),
                 ),
               );
             },
             icon: const Icon(Icons.smart_toy_rounded),
-            label: const Text('Ask AI Assistant'),
+            label: Text(context.translate('ask_ai_btn')),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               backgroundColor: const Color(0xFF8B5CF6),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -750,20 +786,22 @@ class _ResultScreenState extends State<ResultScreen>
           ),
         ),
         const SizedBox(height: 12),
-        // Back and Check Another Buttons
         Row(
           children: [
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-                label: const Text('Back'),
+                icon: Icon(
+                  context.isArabic ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+                ),
+                label: Text(context.translate('back_btn')),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   side: const BorderSide(
                     color: AppTheme.primaryColor,
                     width: 2,
                   ),
+                  foregroundColor: AppTheme.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -774,14 +812,14 @@ class _ResultScreenState extends State<ResultScreen>
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  // Check another interaction
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Check Another'),
+                label: Text(context.translate('check_another_btn')),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -799,18 +837,25 @@ class _ResultScreenState extends State<ResultScreen>
       final dt = DateTime.parse(timestamp);
       final now = DateTime.now();
       final diff = now.difference(dt);
+      final isAr = context.isArabic;
 
       if (diff.inMinutes < 1) {
-        return 'Just now';
+        return isAr ? 'الآن' : 'Just now';
       } else if (diff.inHours < 1) {
-        return '${diff.inMinutes} minute${diff.inMinutes > 1 ? 's' : ''} ago';
+        return isAr 
+            ? 'منذ ${diff.inMinutes} دقيقة' 
+            : '${diff.inMinutes} minute${diff.inMinutes > 1 ? 's' : ''} ago';
       } else if (diff.inDays < 1) {
-        return '${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago';
+        return isAr 
+            ? 'منذ ${diff.inHours} ساعة' 
+            : '${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago';
       } else {
-        return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+        return isAr
+            ? '${dt.day}/${dt.month}/${dt.year} في ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}'
+            : '${dt.day}/${dt.month}/${dt.year} at ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
       }
     } catch (e) {
-      return 'Recently';
+      return context.isArabic ? 'مؤخراً' : 'Recently';
     }
   }
 }

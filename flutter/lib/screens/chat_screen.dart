@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import '../models/chat_message.dart';
 import '../models/interaction_result.dart';
 import '../services/chat_service.dart';
 import '../utils/theme.dart';
+import '../utils/localization.dart';
+import '../providers/theme_provider.dart';
+import '../providers/language_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final InteractionResult result;
@@ -161,31 +165,32 @@ ${summary['arabic']}''';
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+          icon: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'AI Assistant',
+            Text(
+              context.translate('ai_assistant'),
               style: TextStyle(
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               widget.result.drugPair,
-              style: const TextStyle(
-                color: Colors.black54,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 fontSize: 12,
                 fontWeight: FontWeight.normal,
               ),
@@ -233,13 +238,14 @@ ${summary['arabic']}''';
             fit: BoxFit.contain,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'AI is preparing your personalized summary...',
+          Text(
+            context.translate('ai_preparing_summary'),
             style: TextStyle(
-              color: Colors.black54,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -248,33 +254,37 @@ ${summary['arabic']}''';
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Lottie.asset(
-            'assets/animations/nodata.json',
-            width: 200,
-            height: 200,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No messages yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Lottie.asset(
+              'assets/animations/nodata.json',
+              width: 180,
+              height: 180,
+              fit: BoxFit.contain,
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Start a conversation with the AI Assistant',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.black38,
+            const SizedBox(height: 16),
+            Text(
+              context.translate('no_messages_yet'),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              context.translate('start_ai_conv'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -328,7 +338,7 @@ ${summary['arabic']}''';
               decoration: BoxDecoration(
                 color: isUser
                     ? AppTheme.primaryColor
-                    : Colors.white,
+                    : Theme.of(context).cardColor,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
@@ -337,7 +347,7 @@ ${summary['arabic']}''';
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -350,7 +360,7 @@ ${summary['arabic']}''';
                   if (isUser)
                     Text(
                       message.content,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         height: 1.5,
@@ -360,24 +370,28 @@ ${summary['arabic']}''';
                     MarkdownBody(
                       data: message.content,
                       styleSheet: MarkdownStyleSheet(
-                        p: const TextStyle(
-                          color: Colors.black87,
+                        p: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                           fontSize: 15,
                           height: 1.5,
                         ),
-                        strong: const TextStyle(
+                        strong: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        em: const TextStyle(
+                        em: TextStyle(
                           fontStyle: FontStyle.italic,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        listBullet: const TextStyle(
-                          color: Colors.black87,
+                        listBullet: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.9),
                           fontSize: 15,
                         ),
                         code: TextStyle(
-                          backgroundColor: Colors.grey[200],
+                          backgroundColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withOpacity(0.1)
+                              : Colors.grey[200],
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontFamily: 'monospace',
                         ),
                       ),
@@ -388,7 +402,7 @@ ${summary['arabic']}''';
                     style: TextStyle(
                       color: isUser
                           ? Colors.white.withOpacity(0.7)
-                          : Colors.black45,
+                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                       fontSize: 11,
                     ),
                   ),
@@ -403,12 +417,14 @@ ${summary['arabic']}''';
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white.withOpacity(0.1)
+                    : Colors.grey[300],
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.person_rounded,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                 size: 20,
               ),
             ),
@@ -497,13 +513,14 @@ ${summary['arabic']}''';
   }
 
   Widget _buildInputArea() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -516,18 +533,24 @@ ${summary['arabic']}''';
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
                   controller: _messageController,
-                  decoration: const InputDecoration(
-                    hintText: 'Ask a question... / اسأل سؤالاً...',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 15,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: context.translate('chat_input_hint'),
                     border: InputBorder.none,
+                    filled: false,
                     hintStyle: TextStyle(
-                      color: Colors.black38,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
                       fontSize: 14,
                     ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   maxLines: null,
                   textCapitalization: TextCapitalization.sentences,

@@ -3,6 +3,7 @@ import '../services/firebase_service.dart';
 import '../models/interaction_result.dart';
 import '../widgets/severity_badge.dart';
 import '../utils/theme.dart';
+import '../utils/localization.dart';
 import 'result_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -11,17 +12,17 @@ class HistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebase = FirebaseService();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF8FAFC),
-              Color(0xFFEEF2FF),
-            ],
+            colors: isDark
+                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
+                : [const Color(0xFFF8FAFC), const Color(0xFFEEF2FF)],
           ),
         ),
         child: SafeArea(
@@ -31,10 +32,10 @@ class HistoryScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -43,15 +44,19 @@ class HistoryScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: Icon(
+                        context.isArabic ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'History',
+                        context.translate('history_title'),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ),
@@ -62,30 +67,41 @@ class HistoryScreen extends StatelessWidget {
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (ctx) => AlertDialog(
+                              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              title: const Row(
+                              title: Row(
                                 children: [
-                                  Icon(Icons.warning_amber_rounded, color: Colors.orange),
-                                  SizedBox(width: 12),
-                                  Text('Clear History?'),
+                                  const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      context.translate('clear_history_title'),
+                                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                    ),
+                                  ),
                                 ],
                               ),
-                              content: const Text(
-                                'This will permanently remove all history entries from the cloud. This action cannot be undone.',
+                              content: Text(
+                                context.translate('clear_history_desc'),
+                                style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.of(ctx).pop(false),
-                                  child: const Text('Cancel'),
+                                  child: Text(
+                                    context.translate('cancel'),
+                                    style: const TextStyle(color: AppTheme.primaryColor),
+                                  ),
                                 ),
                                 ElevatedButton(
                                   onPressed: () => Navigator.of(ctx).pop(true),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
                                   ),
-                                  child: const Text('Clear All'),
+                                  child: Text(context.translate('clear_all_btn')),
                                 ),
                               ],
                             ),
@@ -95,9 +111,10 @@ class HistoryScreen extends StatelessWidget {
                             await firebase.clearHistory();
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('History cleared successfully'),
+                                SnackBar(
+                                  content: Text(context.translate('history_cleared_msg')),
                                   backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
                                 ),
                               );
                             }
@@ -132,10 +149,10 @@ class HistoryScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Error loading history',
+                                    context.isArabic ? 'خطأ في تحميل السجل' : 'Error loading history',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: Colors.grey[600],
+                                      color: isDark ? Colors.white70 : Colors.grey[600],
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -143,7 +160,7 @@ class HistoryScreen extends StatelessWidget {
                                     snapshot.error.toString(),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[500],
+                                      color: isDark ? Colors.white38 : Colors.grey[500],
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -162,22 +179,22 @@ class HistoryScreen extends StatelessWidget {
                                   Icon(
                                     Icons.history_rounded,
                                     size: 64,
-                                    color: Colors.grey[300],
+                                    color: isDark ? Colors.white24 : Colors.grey[300],
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'No interactions checked yet',
+                                    context.translate('no_history_checks'),
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: Colors.grey[600],
+                                      color: isDark ? Colors.white70 : Colors.grey[600],
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    'Check your first drug interaction to see it here',
+                                    context.translate('check_first_drug_desc'),
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey[500],
+                                      color: isDark ? Colors.white38 : Colors.grey[500],
                                     ),
                                   ),
                                 ],
@@ -193,6 +210,7 @@ class HistoryScreen extends StatelessWidget {
                               
                               return Card(
                                 elevation: 2,
+                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                 margin: const EdgeInsets.only(bottom: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -236,9 +254,10 @@ class HistoryScreen extends StatelessWidget {
                                             children: [
                                               Text(
                                                 item.drugPair,
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
+                                                  color: isDark ? Colors.white : Colors.black87,
                                                 ),
                                               ),
                                               const SizedBox(height: 6),
@@ -248,7 +267,7 @@ class HistoryScreen extends StatelessWidget {
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: Colors.grey[600],
+                                                  color: isDark ? Colors.white60 : Colors.grey[600],
                                                 ),
                                               ),
                                             ],
@@ -297,22 +316,23 @@ class HistoryScreen extends StatelessWidget {
                             Icon(
                               Icons.cloud_off_rounded,
                               size: 64,
-                              color: Colors.grey[300],
+                              color: isDark ? Colors.white24 : Colors.grey[300],
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Sign in to view history',
+                              context.translate('sign_in_history_desc'),
                               style: TextStyle(
                                 fontSize: 18,
-                                color: Colors.grey[600],
+                                color: isDark ? Colors.white70 : Colors.grey[600],
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Your interaction history is saved in the cloud',
+                              context.translate('cloud_history_desc'),
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[500],
+                                color: isDark ? Colors.white38 : Colors.grey[500],
                               ),
                             ),
                           ],
