@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../utils/theme.dart';
+import '../providers/interaction_provider.dart';
 
 typedef DrugSelectedCallback = void Function(String drugName);
 
@@ -32,6 +35,14 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
     _focusNode.addListener(_handleFocus);
   }
 
+  @override
+  void didUpdateWidget(covariant DrugSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue) {
+      _controller.text = widget.initialValue;
+    }
+  }
+
   void _handleFocus() {
     if (!_focusNode.hasFocus) {
       _removeOverlay();
@@ -57,6 +68,8 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
       try {
         final results = await ApiService.instance.searchDrugs(q);
         if (mounted) {
+          // Update server health status to online since drug search succeeded
+          Provider.of<InteractionProvider>(context, listen: false).setServerOnline(true);
           setState(() {
             _suggestions = results;
             _loading = false;
@@ -93,18 +106,25 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
           showWhenUnlinked: false,
           offset: Offset(0, size.height + 8),
           child: Material(
-            elevation: 8,
+            elevation: 0,
             borderRadius: BorderRadius.circular(12),
             color: Colors.transparent,
             child: Container(
               constraints: const BoxConstraints(maxHeight: 260),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey.shade200,
+                  color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
                   width: 1,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
               child: _suggestions.isEmpty
                   ? const SizedBox.shrink()
@@ -112,10 +132,12 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       itemCount: _suggestions.length,
-                      separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? Colors.white10 : Colors.grey.shade200),
+                      separatorBuilder: (_, __) => Divider(height: 1, color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder),
                       itemBuilder: (context, index) {
                         final s = _suggestions[index];
                         return InkWell(
+                          splashColor: isDark ? AppTheme.darkBorder : AppTheme.lightSurfaceVariant,
+                          highlightColor: isDark ? AppTheme.darkBorder : AppTheme.lightSurfaceVariant,
                           onTap: () {
                             _controller.text = s;
                             widget.onDrugSelected(s);
@@ -144,14 +166,14 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                                         s, 
                                         style: TextStyle(
                                           fontWeight: FontWeight.w600,
-                                          color: isDark ? Colors.white : Colors.black87,
+                                          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Drug class: NSAID', 
                                         style: TextStyle(
-                                          color: isDark ? Colors.white60 : Colors.grey.shade600, 
+                                          color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary, 
                                           fontSize: 12,
                                         ),
                                       ),
@@ -159,7 +181,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Icon(Icons.chevron_right, color: isDark ? Colors.white30 : Colors.grey),
+                                Icon(Icons.chevron_right, color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted),
                               ],
                             ),
                           ),
@@ -194,7 +216,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
           Text(
             widget.label, 
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isDark ? Colors.white70 : Colors.black87,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -202,13 +224,13 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
             controller: _controller,
             focusNode: _focusNode,
             onChanged: _onChanged,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
             textInputAction: TextInputAction.search,
             decoration: InputDecoration(
               hintText: widget.label,
-              hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade400),
+              hintStyle: TextStyle(color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted),
               filled: true,
-              fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              fillColor: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurfaceVariant,
               prefixIcon: const Padding(
                 padding: EdgeInsets.only(left: 12, right: 8),
                 child: Icon(Icons.medication_outlined, color: Colors.blue),
@@ -218,7 +240,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                   ? const Padding(padding: EdgeInsets.all(12.0), child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)))
                   : (_controller.text.isNotEmpty
                       ? IconButton(
-                          icon: Icon(Icons.clear, color: isDark ? Colors.white60 : Colors.black54),
+                          icon: Icon(Icons.clear, color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
                           onPressed: () {
                             _controller.clear();
                             widget.onDrugSelected('');
@@ -226,7 +248,7 @@ class _DrugSearchFieldState extends State<DrugSearchField> {
                             _removeOverlay();
                           },
                         )
-                      : Icon(Icons.search, color: isDark ? Colors.white60 : Colors.black54)),
+                      : Icon(Icons.search, color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary)),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

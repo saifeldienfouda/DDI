@@ -3,7 +3,7 @@ FastAPI Backend with Firebase Firestore Integration
 Provides REST API endpoints with cloud data storage
 """
 
-from fastapi import FastAPI, HTTPException, status, Depends, Header
+from fastapi import FastAPI, HTTPException, status, Depends, Header, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Optional
@@ -21,7 +21,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from predict import DDIPredictor
 from firebase_service import FirebaseService
-from gemini_service import GeminiChatService
+from cohere_service import CohereChatService
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -44,13 +44,13 @@ app.add_middleware(
 # Global instances
 predictor = None
 firebase = None
-gemini_service = None
+cohere_service = None
 
 
 @app.on_event("startup")
 async def startup_event():
     """Load model and initialize Firebase on startup"""
-    global predictor, firebase, gemini_service
+    global predictor, firebase, cohere_service
     
     try:
         # Load ML model
@@ -72,11 +72,11 @@ async def startup_event():
         print("⚠️ API will run without cloud storage")
     
     try:
-        # Initialize Gemini Chat Service
-        gemini_service = GeminiChatService()
-        print("✅ Gemini AI Chat Service initialized")
+        # Initialize Cohere Chat Service
+        cohere_service = CohereChatService()
+        print("✅ Cohere AI Chat Service initialized")
     except Exception as e:
-        print(f"⚠️ Gemini initialization failed: {e}")
+        print(f"⚠️ Cohere initialization failed: {e}")
         print("⚠️ Chat features will be unavailable")
 
 
@@ -383,6 +383,90 @@ async def check_interaction(drug_pair: DrugPair):
         )
 
 
+@app.post("/scan-drugs", tags=["Prediction"])
+async def scan_drugs_ocr(file: UploadFile = File(...)):
+    """
+    Extract drug names/active ingredients from an image upload using Gemini 1.5 Flash Vision REST API.
+    """
+    # Read file bytes
+    image_bytes = await file.read()
+    
+    # Get API key from environment
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Gemini API Key not configured on server"
+        )
+    
+    import base64
+    import requests
+    import json
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
+    
+    try:
+        b64_image = base64.b64encode(image_bytes).decode("utf-8")
+        
+        payload = {
+            "contents": [
+                {
+                    "parts": [
+                        {
+                            "text": "Identify and extract all pharmaceutical drug names or active ingredients from this image of a drug label, prescription, or packaging. Return a JSON list of strings containing only the extracted drug names in their standard English format (e.g. ['Aspirin', 'Metformin']). Make sure to only include actual valid drug names. If no drug names are found, return an empty list. Return ONLY the raw JSON array (no markdown block, no ```json formatting, no commentary)."
+                        },
+                        {
+                            "inlineData": {
+                                "mimeType": file.content_type or "image/jpeg",
+                                "data": b64_image
+                            }
+                        }
+                    ]
+                }
+            ],
+            "generationConfig": {
+                "responseMimeType": "application/json"
+            }
+        }
+        
+        resp = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            try:
+                text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                # Parse JSON list
+                drugs = json.loads(text)
+                if isinstance(drugs, list):
+                    # Clean and capitalize
+                    cleaned_drugs = [str(d).strip().title() for d in drugs if d]
+                    return {
+                        "success": True,
+                        "results": cleaned_drugs,
+                        "count": len(cleaned_drugs)
+                    }
+            except Exception as e:
+                print(f"Error parsing Gemini OCR response: {e}")
+                if 'text' in locals():
+                    print(f"Gemini output text was: {text}")
+                
+        # If parsing or API failed
+        print(f"Gemini API returned status {resp.status_code}: {resp.text}")
+        return {
+            "success": False,
+            "results": [],
+            "count": 0,
+            "error": "Failed to extract drugs from image"
+        }
+        
+    except Exception as e:
+        print(f"OCR Exception: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"OCR error: {str(e)}"
+        )
+
+
 # ==================== History Management ====================
 
 @app.get("/history/{user_id}", tags=["History"])
@@ -452,7 +536,7 @@ async def generate_chat_summary(request: ChatSummaryRequest):
     Generate bilingual (Arabic/English) summary of interaction result
     This is called when user opens the chat for the first time
     """
-    if not gemini_service:
+    if not cohere_service:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI Chat service not available"
@@ -477,7 +561,7 @@ async def generate_chat_summary(request: ChatSummaryRequest):
             )
         
         # Generate summary
-        summary = gemini_service.generate_initial_summary(interaction)
+        summary = cohere_service.generate_initial_summary(interaction)
         
         return ChatSummaryResponse(
             success=True,
@@ -503,7 +587,7 @@ async def send_chat_message(request: ChatMessageRequest):
     Send a message to the AI chat assistant
     Supports both Arabic and English
     """
-    if not gemini_service:
+    if not cohere_service:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI Chat service not available"
@@ -528,10 +612,10 @@ async def send_chat_message(request: ChatMessageRequest):
             )
         
         # Detect language
-        detected_lang = gemini_service.detect_language(request.message)
+        detected_lang = cohere_service.detect_language(request.message)
         
         # Get chat response
-        response = gemini_service.chat(
+        response = cohere_service.chat(
             message=request.message,
             interaction_context=interaction,
             chat_history=request.chat_history or []

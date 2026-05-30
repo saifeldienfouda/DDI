@@ -77,8 +77,8 @@ class _TutorialScreenState extends State<TutorialScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                : [const Color(0xFFF8FAFC), const Color(0xFFEEF2FF)],
+                ? AppTheme.darkGradientBg
+                : AppTheme.lightGradientBg,
           ),
         ),
         child: SafeArea(
@@ -119,7 +119,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
                                 : null,
                             color: _currentPage == index
                                 ? null
-                                : (isDark ? Colors.white12 : Colors.grey.shade300),
+                                : (isDark ? AppTheme.darkBorder : AppTheme.lightBorder),
                           ),
                         ),
                       ),
@@ -195,13 +195,20 @@ class TutorialPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
-              ),
+              gradient: isDark
+                  ? LinearGradient(
+                      colors: [
+                        AppTheme.primaryColor.withOpacity(0.2),
+                        AppTheme.darkSurfaceVariant,
+                      ],
+                    )
+                  : const LinearGradient(
+                      colors: [AppTheme.gradientStart, AppTheme.gradientEnd],
+                    ),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.3),
+                  color: AppTheme.primaryColor.withOpacity(isDark ? 0.15 : 0.3),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
@@ -219,7 +226,7 @@ class TutorialPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : const Color(0xFF1E293B),
+              color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -229,7 +236,7 @@ class TutorialPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 16,
               height: 1.6,
-              color: isDark ? Colors.white70 : Colors.grey[700],
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
             ),
             textAlign: TextAlign.center,
           ),

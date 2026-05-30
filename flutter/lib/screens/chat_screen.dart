@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
 import '../models/chat_message.dart';
 import '../models/interaction_result.dart';
 import '../services/chat_service.dart';
 import '../utils/theme.dart';
 import '../utils/localization.dart';
-import '../providers/theme_provider.dart';
-import '../providers/language_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final InteractionResult result;
@@ -418,8 +415,8 @@ ${summary['arabic']}''';
               height: 36,
               decoration: BoxDecoration(
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white.withOpacity(0.1)
-                    : Colors.grey[300],
+                    ? AppTheme.darkSurfaceVariant
+                    : AppTheme.lightSurfaceVariant,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -435,6 +432,7 @@ ${summary['arabic']}''';
   }
 
   Widget _buildTypingIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -457,11 +455,11 @@ ${summary['arabic']}''';
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.05),
                   blurRadius: 5,
                   offset: const Offset(0, 2),
                 ),
@@ -517,10 +515,10 @@ ${summary['arabic']}''';
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -533,7 +531,7 @@ ${summary['arabic']}''';
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  color: isDark ? AppTheme.darkBg : AppTheme.lightSurfaceVariant,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(

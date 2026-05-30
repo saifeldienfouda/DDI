@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/theme.dart';
 import '../utils/localization.dart';
@@ -78,8 +77,8 @@ class _TermsScreenState extends State<TermsScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                : [const Color(0xFF667eea), const Color(0xFF764ba2)],
+                ? AppTheme.darkGradientBg
+                : AppTheme.lightGradientBg,
           ),
         ),
         child: SafeArea(
@@ -90,35 +89,37 @@ class _TermsScreenState extends State<TermsScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.gavel_rounded,
-                            size: 50,
-                            color: Colors.white,
-                          ),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.darkSurfaceVariant
+                            : AppTheme.lightSurface,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: isDark
+                              ? AppTheme.darkBorder
+                              : AppTheme.lightBorder,
+                          width: 2,
                         ),
+                      ),
+                      child: Icon(
+                        Icons.gavel_rounded,
+                        size: 50,
+                        color: isDark
+                            ? AppTheme.darkTextPrimary
+                            : AppTheme.primaryColor,
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       isAr ? 'الشروط والخصوصية' : 'Terms & Privacy',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: isDark
+                            ? AppTheme.darkTextPrimary
+                            : AppTheme.lightTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -126,7 +127,9 @@ class _TermsScreenState extends State<TermsScreen> {
                       isAr ? 'يرجى مراجعة وقبول الشروط الطبية والمصطلحات' : 'Please review and accept',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
+                        color: isDark
+                            ? AppTheme.darkTextSecondary
+                            : AppTheme.lightTextSecondary,
                       ),
                     ),
                   ],
@@ -135,127 +138,127 @@ class _TermsScreenState extends State<TermsScreen> {
 
               // Content
               Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppTheme.darkSurface
+                        : AppTheme.lightSurface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    border: Border.all(
+                      color: isDark
+                          ? AppTheme.darkBorder
+                          : AppTheme.lightBorder,
+                      width: 1.5,
+                    ),
                   ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B).withOpacity(0.7) : Colors.white.withOpacity(0.15),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSection(
+                          isAr ? 'شروط الاستخدام والضوابط السريرية' : 'Terms of Use',
+                          termsPoints,
+                          isAr,
+                          isDark,
                         ),
-                        border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.08) : Colors.white.withOpacity(0.2),
-                          width: 1.5,
+                        const SizedBox(height: 24),
+                        _buildSection(
+                          isAr ? 'إخلاء المسؤولية الطبي المهم' : 'Medical Disclaimer',
+                          disclaimerPoints,
+                          isAr,
+                          isDark,
                         ),
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSection(
-                              isAr ? 'شروط الاستخدام والضوابط السريرية' : 'Terms of Use',
-                              termsPoints,
-                              isAr,
-                            ),
-                            const SizedBox(height: 24),
-                            _buildSection(
-                              isAr ? 'إخلاء المسؤولية الطبي المهم' : 'Medical Disclaimer',
-                              disclaimerPoints,
-                              isAr,
-                            ),
-                            const SizedBox(height: 24),
-                            _buildSection(
-                              isAr ? 'سياسة الخصوصية وأمن البيانات' : 'Privacy Policy',
-                              privacyPoints,
-                              isAr,
-                            ),
-                            const SizedBox(height: 32),
+                        const SizedBox(height: 24),
+                        _buildSection(
+                          isAr ? 'سياسة الخصوصية وأمن البيانات' : 'Privacy Policy',
+                          privacyPoints,
+                          isAr,
+                          isDark,
+                        ),
+                        const SizedBox(height: 32),
 
-                            // Checkboxes
-                            _buildCheckbox(
-                              isAr ? 'أوافق على شروط الاستخدام وإخلاء المسؤولية الطبي المذكور' : 'I agree to the Terms of Use and Medical Disclaimer',
-                              _agreedToTerms,
-                              isDark,
-                              (value) => setState(() => _agreedToTerms = value!),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildCheckbox(
-                              isAr ? 'أوافق على بنود سياسة الخصوصية وحماية البيانات الطبية' : 'I agree to the Privacy Policy',
-                              _agreedToPrivacy,
-                              isDark,
-                              (value) => setState(() => _agreedToPrivacy = value!),
-                            ),
-                            const SizedBox(height: 32),
+                        // Checkboxes
+                        _buildCheckbox(
+                          isAr ? 'أوافق على شروط الاستخدام وإخلاء المسؤولية الطبي المذكور' : 'I agree to the Terms of Use and Medical Disclaimer',
+                          _agreedToTerms,
+                          isDark,
+                          (value) => setState(() => _agreedToTerms = value!),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildCheckbox(
+                          isAr ? 'أوافق على بنود سياسة الخصوصية وحماية البيانات الطبية' : 'I agree to the Privacy Policy',
+                          _agreedToPrivacy,
+                          isDark,
+                          (value) => setState(() => _agreedToPrivacy = value!),
+                        ),
+                        const SizedBox(height: 32),
 
-                            // Accept button
-                            SizedBox(
-                              width: double.infinity,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: (_agreedToTerms && _agreedToPrivacy)
-                                          ? Colors.white.withOpacity(0.3)
-                                          : Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: (_agreedToTerms && _agreedToPrivacy)
-                                            ? () async {
-                                                final prefs = await SharedPreferences.getInstance();
-                                                await prefs.setBool('terms_accepted', true);
-                                                await prefs.setBool('onboarding_complete', true);
-                                                
-                                                if (mounted) {
-                                                  Navigator.of(context).pushReplacement(
-                                                    MaterialPageRoute(
-                                                      builder: (_) => const AuthScreen(),
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            : null,
-                                        borderRadius: BorderRadius.circular(16),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 18),
-                                          child: Center(
-                                            child: Text(
-                                              isAr ? 'قبول ومتابعة' : 'Accept & Continue',
-                                              style: TextStyle(
-                                                color: (_agreedToTerms && _agreedToPrivacy)
-                                                    ? Colors.white
-                                                    : Colors.white.withOpacity(0.5),
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                        // Accept button
+                        SizedBox(
+                          width: double.infinity,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: (_agreedToTerms && _agreedToPrivacy)
+                                  ? AppTheme.primaryColor
+                                  : (isDark
+                                      ? AppTheme.darkSurfaceVariant
+                                      : AppTheme.lightSurfaceVariant),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: (_agreedToTerms && _agreedToPrivacy)
+                                    ? AppTheme.primaryColor
+                                    : (isDark
+                                        ? AppTheme.darkBorder
+                                        : AppTheme.lightBorder),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: (_agreedToTerms && _agreedToPrivacy)
+                                    ? () async {
+                                        final prefs = await SharedPreferences.getInstance();
+                                        await prefs.setBool('terms_accepted', true);
+                                        await prefs.setBool('onboarding_complete', true);
+                                        
+                                        if (mounted) {
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (_) => const AuthScreen(),
                                             ),
-                                          ),
-                                        ),
+                                          );
+                                        }
+                                      }
+                                    : null,
+                                borderRadius: BorderRadius.circular(16),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  child: Center(
+                                    child: Text(
+                                      isAr ? 'قبول ومتابعة' : 'Accept & Continue',
+                                      style: TextStyle(
+                                        color: (_agreedToTerms && _agreedToPrivacy)
+                                            ? Colors.white
+                                            : (isDark
+                                                ? AppTheme.darkTextMuted
+                                                : AppTheme.lightTextMuted),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
-                          ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
@@ -267,103 +270,126 @@ class _TermsScreenState extends State<TermsScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<String> points, bool isAr) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+  Widget _buildSection(String title, List<String> points, bool isAr, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppTheme.darkSurfaceVariant
+            : AppTheme.lightSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? AppTheme.darkBorder
+              : AppTheme.lightBorder,
+          width: 1,
         ),
-        const SizedBox(height: 12),
-        ...points.map((point) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(
-                      top: 6, 
-                      right: isAr ? 0 : 8, 
-                      left: isAr ? 8 : 0,
-                    ),
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      point,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        height: 1.5,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark
+                  ? AppTheme.darkTextPrimary
+                  : AppTheme.lightTextPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...points.map((point) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                        top: 6, 
+                        right: isAr ? 0 : 8, 
+                        left: isAr ? 8 : 0,
+                      ),
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppTheme.darkTextSecondary
+                            : AppTheme.lightTextSecondary,
+                        shape: BoxShape.circle,
                       ),
                     ),
-                  ),
-                ],
-              ),
-            )),
-      ],
+                    Expanded(
+                      child: Text(
+                        point,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? AppTheme.darkTextSecondary
+                              : AppTheme.lightTextSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
     );
   }
 
   Widget _buildCheckbox(String text, bool value, bool isDark, Function(bool?) onChanged) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? AppTheme.darkSurfaceVariant
+            : AppTheme.lightSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? AppTheme.darkBorder
+              : AppTheme.lightBorder,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: value,
+              onChanged: onChanged,
+              fillColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppTheme.primaryColor;
+                }
+                return isDark
+                    ? AppTheme.darkBorder
+                    : AppTheme.lightBorder;
+              }),
+              checkColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
           ),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: Checkbox(
-                  value: value,
-                  onChanged: onChanged,
-                  fillColor: MaterialStateProperty.resolveWith((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return Colors.white;
-                    }
-                    return Colors.white.withOpacity(0.3);
-                  }),
-                  checkColor: isDark ? const Color(0xFF1E293B) : const Color(0xFF667eea),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark
+                    ? AppTheme.darkTextPrimary
+                    : AppTheme.lightTextPrimary,
+                fontWeight: FontWeight.w500,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

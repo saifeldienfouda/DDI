@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../utils/localization.dart';
+import '../utils/theme.dart';
 import 'terms_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -33,8 +34,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? 'تقوم خوارزميات الذكاء الاصطناعي المتقدمة بفحص التفاعلات الدوائية بدقة ٩٣.٨٪.' 
             : 'Advanced machine learning algorithms analyze drug interactions with 93.8% accuracy',
         gradient: isDark 
-            ? const [Color(0xFF0F172A), const Color(0xFF1E293B)] 
-            : const [Color(0xFF667eea), const Color(0xFF764ba2)],
+            ? [
+                Color.lerp(const Color(0xFF667eea), AppTheme.darkBg, 0.85)!,
+                Color.lerp(const Color(0xFF764ba2), AppTheme.darkBg, 0.85)!,
+              ]
+            : const [Color(0xFF667eea), Color(0xFF764ba2)],
       ),
       OnboardingPage(
         icon: Icons.medication_rounded,
@@ -43,8 +47,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? 'قاعدة بيانات طبية شاملة تغطي آلاف الأدوية والمواد الفعالة وتفاعلاتها.' 
             : 'Comprehensive database covering thousands of medications and their interactions',
         gradient: isDark 
-            ? const [Color(0xFF1E293B), const Color(0xFF312E81)] 
-            : const [Color(0xFFf093fb), const Color(0xFFf5576c)],
+            ? [
+                Color.lerp(const Color(0xFFf093fb), AppTheme.darkBg, 0.85)!,
+                Color.lerp(const Color(0xFFf5576c), AppTheme.darkBg, 0.85)!,
+              ]
+            : const [Color(0xFFf093fb), Color(0xFFf5576c)],
       ),
       OnboardingPage(
         icon: Icons.speed_rounded,
@@ -53,8 +60,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? 'احصل على تحليل تفصيلي للتفاعل الدوائي في أقل من ثانية بدقة متناهية.' 
             : 'Get detailed interaction analysis in less than a second with cloud sync',
         gradient: isDark 
-            ? const [Color(0xFF0F172A), const Color(0xFF1E1B4B)] 
-            : const [Color(0xFF4facfe), const Color(0xFF00f2fe)],
+            ? [
+                Color.lerp(const Color(0xFF4facfe), AppTheme.darkBg, 0.85)!,
+                Color.lerp(const Color(0xFF00f2fe), AppTheme.darkBg, 0.85)!,
+              ]
+            : const [Color(0xFF4facfe), Color(0xFF00f2fe)],
       ),
       OnboardingPage(
         icon: Icons.cloud_done_rounded,
@@ -63,8 +73,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ? 'يتم حفظ وتشفير سجل عمليات الفحص الخاصة بك سحابياً للوصول إليها بأمان.' 
             : 'Your interaction history is safely stored and synced across all your devices',
         gradient: isDark 
-            ? const [Color(0xFF1E293B), const Color(0xFF0F172A)] 
-            : const [Color(0xFF43e97b), const Color(0xFF38f9d7)],
+            ? [
+                Color.lerp(const Color(0xFF43e97b), AppTheme.darkBg, 0.85)!,
+                Color.lerp(const Color(0xFF38f9d7), AppTheme.darkBg, 0.85)!,
+              ]
+            : const [Color(0xFF43e97b), Color(0xFF38f9d7)],
       ),
     ];
 
@@ -91,8 +104,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: () => _navigateToTerms(),
                     child: Text(
                       isAr ? 'تخطي' : 'Skip',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: isDark ? AppTheme.darkTextSecondary : Colors.white70,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
@@ -112,7 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                   itemCount: pages.length,
                   itemBuilder: (context, index) {
-                    return _buildPage(pages[index]);
+                    return _buildPage(pages[index], isDark);
                   },
                 ),
               ),
@@ -122,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   pages.length,
-                  (index) => _buildIndicator(index == _currentPage),
+                  (index) => _buildIndicator(index == _currentPage, isDark),
                 ),
               ),
               const SizedBox(height: 32),
@@ -130,54 +143,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               // Next/Get Started button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            if (_currentPage == pages.length - 1) {
-                              _navigateToTerms();
-                            } else {
-                              _pageController.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                              );
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 18),
-                            child: Center(
-                              child: Text(
-                                _currentPage == pages.length - 1
-                                    ? (isAr ? 'ابدأ الآن' : 'Get Started')
-                                    : (isAr ? 'التالي' : 'Next'),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                child: isDark
+                    ? _buildDarkButton(isAr, pages.length)
+                    : _buildLightButton(isAr, pages.length),
               ),
               const SizedBox(height: 40),
             ],
@@ -187,7 +155,106 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPage(OnboardingPage page) {
+  Widget _buildDarkButton(bool isAr, int pageCount) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            if (_currentPage == pageCount - 1) {
+              _navigateToTerms();
+            } else {
+              _pageController.nextPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Center(
+              child: Text(
+                _currentPage == pageCount - 1
+                    ? (isAr ? 'ابدأ الآن' : 'Get Started')
+                    : (isAr ? 'التالي' : 'Next'),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLightButton(bool isAr, int pageCount) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                if (_currentPage == pageCount - 1) {
+                  _navigateToTerms();
+                } else {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                child: Center(
+                  child: Text(
+                    _currentPage == pageCount - 1
+                        ? (isAr ? 'ابدأ الآن' : 'Get Started')
+                        : (isAr ? 'التالي' : 'Next'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPage(OnboardingPage page, bool isDark) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isSmallScreen = constraints.maxHeight < 600;
@@ -206,28 +273,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Glassmorphic icon container
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(40),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        width: iconSize,
-                        height: iconSize,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(40),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
-                            width: 2,
-                          ),
-                        ),
-                        child: Icon(
-                          page.icon,
-                          size: iconSize * 0.5,
-                          color: Colors.white,
-                        ),
+                  // Icon container
+                  Container(
+                    width: iconSize,
+                    height: iconSize,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppTheme.darkSurfaceVariant
+                          : Colors.white.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(40),
+                      border: Border.all(
+                        color: isDark
+                            ? AppTheme.darkBorder
+                            : Colors.white.withOpacity(0.5),
+                        width: 2,
                       ),
+                    ),
+                    child: Icon(
+                      page.icon,
+                      size: iconSize * 0.5,
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: isSmallScreen ? 40 : 60),
@@ -251,7 +316,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: descSize,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white70,
                       height: 1.6,
                     ),
                   ),
@@ -264,14 +329,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildIndicator(bool isActive) {
+  Widget _buildIndicator(bool isActive, bool isDark) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       height: 8,
       width: isActive ? 24 : 8,
       decoration: BoxDecoration(
-        color: isActive ? Colors.white : Colors.white.withOpacity(0.4),
+        color: isActive
+            ? AppTheme.primaryColor
+            : (isDark ? AppTheme.darkBorder : AppTheme.lightBorder),
         borderRadius: BorderRadius.circular(4),
       ),
     );

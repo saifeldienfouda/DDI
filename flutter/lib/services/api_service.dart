@@ -57,7 +57,7 @@ class ApiService {
   Future<bool> checkHealth() async {
     final uri = Uri.parse('${AppConstants.baseUrl}${AppConstants.healthEndpoint}');
     try {
-      final resp = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final resp = await _client.get(uri).timeout(const Duration(seconds: 15));
       if (resp.statusCode == 200) {
         final json = jsonDecode(resp.body);
         if (json is Map<String, dynamic>) {
@@ -66,9 +66,11 @@ class ApiService {
         return true;
       }
       return false;
-    } on TimeoutException catch (_) {
+    } on TimeoutException catch (e) {
+      print('Health check timed out: $e');
       return false;
-    } catch (_) {
+    } catch (e) {
+      print('Health check failed: $e');
       return false;
     }
   }

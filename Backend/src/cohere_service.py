@@ -1,8 +1,6 @@
 """
 Cohere AI Service for Chat Assistant
 Provides bilingual (Arabic/English) chat support for DDI results
-
-This service is a drop-in replacement for the previous Gemini-based implementation.
 """
 
 import os
@@ -13,12 +11,9 @@ from datetime import datetime
 import cohere
 
 
-class GeminiChatService:
+class CohereChatService:
     """
     Service for handling AI chat using Cohere (command-r model by default).
-
-    NOTE: Kept the class name `GeminiChatService` so that existing imports
-    in `main_with_firebase.py` continue to work without changes.
     """
     
     def __init__(self, api_key: Optional[str] = None):
@@ -238,7 +233,7 @@ The user is asking about this specific interaction. Please provide helpful, accu
 if __name__ == "__main__":
     # Test the service
     try:
-        service = GeminiChatService()
+        service = CohereChatService()
         
         # Test interaction data
         test_interaction = {
@@ -253,7 +248,7 @@ if __name__ == "__main__":
             ]
         }
         
-        print("Testing Gemini Chat Service...")
+        print("Testing Cohere Chat Service...")
         print("\n" + "="*60)
         print("Generating initial summary...")
         print("="*60)

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
-import 'dart:ui';
+
 import '../utils/theme.dart';
 import '../utils/localization.dart';
 import 'home_screen.dart';
@@ -145,16 +145,16 @@ class _AuthScreenState extends State<AuthScreen> {
             end: Alignment.bottomRight,
             colors: isDark
                 ? [
-                    const Color(0xFF0F172A),
-                    const Color(0xFF1E293B),
-                    const Color(0xFF312E81),
-                    const Color(0xFF1E1B4B),
+                    const Color(0xFF0A0E1A),
+                    const Color(0xFF141929),
+                    const Color(0xFF1C1040),
+                    const Color(0xFF0E0A2A),
                   ]
                 : [
                     const Color(0xFF667eea),
                     const Color(0xFF764ba2),
-                    const Color(0xFFF093FB),
-                    const Color(0xFFF5576C),
+                    const Color(0xFFA78BFA),
+                    const Color(0xFF6366F1),
                   ],
             stops: const [0.0, 0.4, 0.7, 1.0],
           ),
@@ -178,8 +178,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        color: isDark ? AppTheme.darkSurfaceVariant : Colors.white,
                         shape: BoxShape.circle,
+                        border: isDark ? Border.all(color: AppTheme.darkBorder) : null,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
@@ -217,83 +218,53 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 48),
 
                     // Auth Form Card with Glassmorphism
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [
-                                      const Color(0xFF1E293B).withOpacity(0.85),
-                                      const Color(0xFF0F172A).withOpacity(0.85),
-                                    ]
-                                  : [
-                                      Colors.white.withOpacity(0.3),
-                                      Colors.white.withOpacity(0.2),
-                                    ],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.4),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: AppTheme.cardDecoration(isDark, borderRadius: 24),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              _isLogin 
+                                  ? (context.isArabic ? 'مرحباً بك مجدداً' : 'Welcome Back') 
+                                  : (context.isArabic ? 'إنشاء حساب جديد' : 'Create Account'),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                               ),
-                            ],
-                          ),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Text(
-                                  _isLogin 
-                                      ? (context.isArabic ? 'مرحباً بك مجدداً' : 'Welcome Back') 
-                                      : (context.isArabic ? 'إنشاء حساب جديد' : 'Create Account'),
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark ? Colors.white : Colors.black87,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
+                              textAlign: TextAlign.center,
+                            ),
                                 const SizedBox(height: 24),
 
                                 // Name field (only for sign up)
                                 if (!_isLogin) ...[
-                                  TextFormField(
-                                    controller: _nameController,
-                                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                                    decoration: InputDecoration(
-                                      labelText: context.isArabic ? 'الاسم الكامل' : 'Full Name',
-                                      prefixIcon: const Icon(Icons.person_outline),
-                                      labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                                      prefixIconColor: isDark ? Colors.white60 : Colors.black54,
-                                    ),
+                              TextFormField(
+                                controller: _nameController,
+                                style: TextStyle(color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
+                                decoration: InputDecoration(
+                                  labelText: context.isArabic ? 'الاسم الكامل' : 'Full Name',
+                                  prefixIcon: const Icon(Icons.person_outline),
+                                  labelStyle: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
+                                  prefixIconColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                                ),
                                     textInputAction: TextInputAction.next,
                                   ),
-                                  const SizedBox(height: 16),
-                                ],
+                              const SizedBox(height: 16),
+                            ],
 
                                 // Email field
-                                TextFormField(
-                                  controller: _emailController,
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                                  decoration: InputDecoration(
-                                    labelText: context.isArabic ? 'البريد الإلكتروني' : 'Email',
-                                    prefixIcon: const Icon(Icons.email_outlined),
-                                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                                    prefixIconColor: isDark ? Colors.white60 : Colors.black54,
-                                  ),
+                            TextFormField(
+                              controller: _emailController,
+                              style: TextStyle(color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
+                              decoration: InputDecoration(
+                                labelText: context.isArabic ? 'البريد الإلكتروني' : 'Email',
+                                prefixIcon: const Icon(Icons.email_outlined),
+                                labelStyle: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
+                                prefixIconColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                              ),
                                   keyboardType: TextInputType.emailAddress,
                                   textInputAction: TextInputAction.next,
                                   validator: (value) {
@@ -309,15 +280,15 @@ class _AuthScreenState extends State<AuthScreen> {
                                 const SizedBox(height: 16),
 
                                 // Password field
-                                TextFormField(
-                                  controller: _passwordController,
-                                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                                  decoration: InputDecoration(
-                                    labelText: context.isArabic ? 'كلمة المرور' : 'Password',
-                                    prefixIcon: const Icon(Icons.lock_outline),
-                                    labelStyle: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
-                                    prefixIconColor: isDark ? Colors.white60 : Colors.black54,
-                                  ),
+                            TextFormField(
+                              controller: _passwordController,
+                              style: TextStyle(color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
+                              decoration: InputDecoration(
+                                labelText: context.isArabic ? 'كلمة المرور' : 'Password',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                labelStyle: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
+                                prefixIconColor: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                              ),
                                   obscureText: true,
                                   textInputAction: TextInputAction.done,
                                   onFieldSubmitted: (_) => _submitForm(),
@@ -431,7 +402,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                         padding: const EdgeInsets.symmetric(horizontal: 16),
                                         child: Text(
                                           context.isArabic ? 'أو' : 'OR', 
-                                          style: TextStyle(color: isDark ? Colors.white60 : Colors.grey),
+                                          style: TextStyle(color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted),
                                         ),
                                       ),
                                       const Expanded(child: Divider()),
@@ -445,15 +416,15 @@ class _AuthScreenState extends State<AuthScreen> {
                                     HapticFeedback.lightImpact();
                                     _signInAnonymously();
                                   },
-                                  icon: Icon(Icons.person_outline, color: isDark ? Colors.white70 : AppTheme.primaryColor),
+                                  icon: Icon(Icons.person_outline, color: isDark ? AppTheme.darkTextSecondary : AppTheme.primaryColor),
                                   label: Text(
                                     context.isArabic ? 'الدخول كزائر' : 'Continue as Guest',
-                                    style: TextStyle(color: isDark ? Colors.white70 : AppTheme.primaryColor),
+                                    style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.primaryColor),
                                   ),
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(vertical: 16),
                                     side: BorderSide(
-                                      color: isDark ? Colors.white30 : AppTheme.primaryColor, 
+                                      color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder, 
                                       width: 2,
                                     ),
                                     shape: RoundedRectangleBorder(
@@ -461,9 +432,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                          ],
                         ),
                       ),
                     ),

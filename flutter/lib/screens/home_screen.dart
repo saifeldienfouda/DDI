@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
-import 'dart:ui';
+
 import '../providers/interaction_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
@@ -12,6 +12,7 @@ import '../utils/theme.dart';
 import '../utils/localization.dart';
 import 'result_screen.dart';
 import 'history_screen.dart';
+import 'ocr_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -74,8 +75,8 @@ class _HomeScreenState extends State<HomeScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: isDark
-                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                : [const Color(0xFFEEF2FF), const Color(0xFFF8FAFC)],
+                ? AppTheme.darkGradientBg
+                : AppTheme.lightGradientBg,
           ),
         ),
         child: SafeArea(
@@ -372,113 +373,95 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildDrugInputSection(InteractionProvider prov) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B).withOpacity(0.9) : Colors.white.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.cardDecoration(isDark),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drug A Input
+          DrugSearchField(
+            label: context.translate('enter_drug_a'),
+            initialValue: _drugA,
+            onDrugSelected: (drug) => setState(() => _drugA = drug),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Drug A Input
-              DrugSearchField(
-                label: context.translate('enter_drug_a'),
-                onDrugSelected: (drug) => setState(() => _drugA = drug),
-              ),
 
-              const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-              // Drug B Input
-              DrugSearchField(
-                label: context.translate('enter_drug_b'),
-                onDrugSelected: (drug) => setState(() => _drugB = drug),
-              ),
+          // Drug B Input
+          DrugSearchField(
+            label: context.translate('enter_drug_b'),
+            initialValue: _drugB,
+            onDrugSelected: (drug) => setState(() => _drugB = drug),
+          ),
 
-              const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-              // Check Button
-              Hero(
-                tag: 'analyze_button',
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                  onPressed: prov.isLoading || _drugA.isEmpty || _drugB.isEmpty
-                      ? null
-                      : () async {
-                        HapticFeedback.lightImpact();
-                        await prov.checkInteraction(_drugA, _drugB);
-                        if (prov.currentResult != null && mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ResultScreen(result: prov.currentResult!),
-                            ),
-                          );
-                        } else if (prov.error != null && mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(prov.error!),
-                              backgroundColor: Colors.red,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: prov.isLoading
-                      ? SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: Lottie.asset(
-                            'assets/animations/Loading Dots Blue.json',
-                            width: 60,
-                            height: 24,
-                            fit: BoxFit.contain,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.analytics_rounded, size: 22),
-                            const SizedBox(width: 10),
-                            Text(
-                              context.translate('check_btn'),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+          // Check Button
+          Hero(
+            tag: 'analyze_button',
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+              onPressed: prov.isLoading || _drugA.isEmpty || _drugB.isEmpty
+                  ? null
+                  : () async {
+                    HapticFeedback.lightImpact();
+                    await prov.checkInteraction(_drugA, _drugB);
+                    if (prov.currentResult != null && mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ResultScreen(result: prov.currentResult!),
                         ),
-                  ),
+                      );
+                    } else if (prov.error != null && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(prov.error!),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                elevation: 2,
               ),
-            ],
+              child: prov.isLoading
+                  ? SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: Lottie.asset(
+                        'assets/animations/Loading Dots Blue.json',
+                        width: 60,
+                        height: 24,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.analytics_rounded, size: 22),
+                        const SizedBox(width: 10),
+                        Text(
+                          context.translate('check_btn'),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -495,10 +478,33 @@ class _HomeScreenState extends State<HomeScreen>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
+              color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
             ),
           ),
         ),
+        _buildActionCard(
+          icon: Icons.qr_code_scanner_rounded,
+          title: context.translate('ocr_scanner'),
+          subtitle: context.translate('ocr_desc'),
+          color: const Color(0xFF10B981),
+          onTap: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OcrScreen()),
+            );
+            if (result != null && result is Map<String, String>) {
+              setState(() {
+                if (result['drugA'] != null && result['drugA']!.isNotEmpty) {
+                  _drugA = result['drugA']!;
+                }
+                if (result['drugB'] != null && result['drugB']!.isNotEmpty) {
+                  _drugB = result['drugB']!;
+                }
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 14),
         _buildActionCard(
           icon: Icons.history_rounded,
           title: context.translate('history_tab'),
@@ -522,91 +528,89 @@ class _HomeScreenState extends State<HomeScreen>
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: () {
         HapticFeedback.lightImpact();
         onTap();
       },
       borderRadius: BorderRadius.circular(20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.2),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+            width: 1,
+          ),
+          boxShadow: [
+            if (isDark)
+              BoxShadow(
+                color: color.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: -5,
+              )
+            else
+              BoxShadow(
+                color: color.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+                spreadRadius: -2,
+              ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withOpacity(0.4),
+                    color.withOpacity(0.2),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.4),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                  spreadRadius: -5,
-                ),
-              ],
+              child: Icon(icon, color: Colors.white, size: 32),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.4),
-                        color.withOpacity(0.2),
-                      ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
                   ),
-                  child: Icon(icon, color: Colors.white, size: 32),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                    ),
                   ),
-                ),
-                const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 16),
-              ],
+                ],
+              ),
             ),
-          ),
+            Icon(Icons.arrow_forward_ios_rounded,
+                color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
+                size: 16),
+          ],
         ),
       ),
     );
@@ -617,9 +621,12 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.amber.withOpacity(isDark ? 0.12 : 0.08),
+        color: isDark ? const Color(0xFF2D1F00) : const Color(0xFFFFFBEB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.amber.withOpacity(isDark ? 0.4 : 0.3), width: 2),
+        border: Border.all(
+          color: isDark ? const Color(0xFF5C4200) : const Color(0xFFFCD34D),
+          width: 2,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -627,12 +634,14 @@ class _HomeScreenState extends State<HomeScreen>
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.2),
+              color: isDark
+                  ? const Color(0xFF5C4200).withOpacity(0.4)
+                  : const Color(0xFFFCD34D).withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               Icons.warning_amber_rounded,
-              color: Colors.amber[isDark ? 300 : 800],
+              color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
               size: 24,
             ),
           ),
@@ -646,7 +655,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.amber[200] : Colors.black87,
+                    color: isDark ? const Color(0xFFFCD34D) : const Color(0xFF92400E),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -654,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen>
                   context.translate('consult_disclaimer'),
                   style: TextStyle(
                     fontSize: 13,
-                    color: isDark ? Colors.white70 : Colors.black87,
+                    color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -668,87 +677,76 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.white.withOpacity(0.25),
-                  Colors.white.withOpacity(0.15),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+            width: 1,
+          ),
+          boxShadow: [
+            if (isDark)
+              BoxShadow(
+                color: color.withOpacity(0.12),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: -5,
+              )
+            else
+              BoxShadow(
+                color: color.withOpacity(0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+                spreadRadius: -2,
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withOpacity(0.3),
+                    color.withOpacity(0.1),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1.5,
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                  spreadRadius: -5,
-                ),
-              ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.3),
-                        color.withOpacity(0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 24),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white70,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

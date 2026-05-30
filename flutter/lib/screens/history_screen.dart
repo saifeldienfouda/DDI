@@ -4,6 +4,7 @@ import '../models/interaction_result.dart';
 import '../widgets/severity_badge.dart';
 import '../utils/theme.dart';
 import '../utils/localization.dart';
+import '../utils/translation_helper.dart';
 import 'result_screen.dart';
 
 class HistoryScreen extends StatelessWidget {
@@ -21,8 +22,8 @@ class HistoryScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [const Color(0xFF0F172A), const Color(0xFF1E293B)]
-                : [const Color(0xFFF8FAFC), const Color(0xFFEEF2FF)],
+                ? AppTheme.darkGradientBg
+                : AppTheme.lightGradientBg,
           ),
         ),
         child: SafeArea(
@@ -32,7 +33,12 @@ class HistoryScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+                    ),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
@@ -46,7 +52,7 @@ class HistoryScreen extends StatelessWidget {
                     IconButton(
                       icon: Icon(
                         context.isArabic ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                       ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -56,7 +62,7 @@ class HistoryScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                         ),
                       ),
                     ),
@@ -67,10 +73,6 @@ class HistoryScreen extends StatelessWidget {
                           final confirmed = await showDialog<bool>(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
                               title: Row(
                                 children: [
                                   const Icon(Icons.warning_amber_rounded, color: Colors.orange),
@@ -78,14 +80,14 @@ class HistoryScreen extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       context.translate('clear_history_title'),
-                                      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                                      style: TextStyle(color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
                                     ),
                                   ),
                                 ],
                               ),
                               content: Text(
                                 context.translate('clear_history_desc'),
-                                style: TextStyle(color: isDark ? Colors.white70 : Colors.black87),
+                                style: TextStyle(color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary),
                               ),
                               actions: [
                                 TextButton(
@@ -152,7 +154,7 @@ class HistoryScreen extends StatelessWidget {
                                     context.isArabic ? 'خطأ في تحميل السجل' : 'Error loading history',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: isDark ? Colors.white70 : Colors.grey[600],
+                                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -160,7 +162,7 @@ class HistoryScreen extends StatelessWidget {
                                     snapshot.error.toString(),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isDark ? Colors.white38 : Colors.grey[500],
+                                      color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -179,14 +181,14 @@ class HistoryScreen extends StatelessWidget {
                                   Icon(
                                     Icons.history_rounded,
                                     size: 64,
-                                    color: isDark ? Colors.white24 : Colors.grey[300],
+                                    color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
                                     context.translate('no_history_checks'),
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: isDark ? Colors.white70 : Colors.grey[600],
+                                      color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -194,7 +196,7 @@ class HistoryScreen extends StatelessWidget {
                                     context.translate('check_first_drug_desc'),
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: isDark ? Colors.white38 : Colors.grey[500],
+                                      color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                                     ),
                                   ),
                                 ],
@@ -208,14 +210,18 @@ class HistoryScreen extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final item = history[index];
                               
-                              return Card(
-                                elevation: 2,
-                                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              return Container(
                                 margin: const EdgeInsets.only(bottom: 12),
-                                shape: RoundedRectangleBorder(
+                                decoration: BoxDecoration(
+                                  color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
                                   borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+                                  ),
                                 ),
-                                child: InkWell(
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
                                   borderRadius: BorderRadius.circular(16),
                                   onTap: () {
                                     Navigator.push(
@@ -257,17 +263,21 @@ class HistoryScreen extends StatelessWidget {
                                                 style: TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.bold,
-                                                  color: isDark ? Colors.white : Colors.black87,
+                                                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                                                 ),
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
-                                                item.description,
+                                                TranslationHelper.translateDescription(
+                                                  item.description,
+                                                  item.drugPair,
+                                                  context.isArabic,
+                                                ),
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   fontSize: 13,
-                                                  color: isDark ? Colors.white60 : Colors.grey[600],
+                                                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                                                 ),
                                               ),
                                             ],
@@ -304,6 +314,7 @@ class HistoryScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                ),
                               );
                             },
                           );
@@ -316,14 +327,14 @@ class HistoryScreen extends StatelessWidget {
                             Icon(
                               Icons.cloud_off_rounded,
                               size: 64,
-                              color: isDark ? Colors.white24 : Colors.grey[300],
+                              color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                             ),
                             const SizedBox(height: 16),
                             Text(
                               context.translate('sign_in_history_desc'),
                               style: TextStyle(
                                 fontSize: 18,
-                                color: isDark ? Colors.white70 : Colors.grey[600],
+                                color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -332,7 +343,7 @@ class HistoryScreen extends StatelessWidget {
                               context.translate('cloud_history_desc'),
                               style: TextStyle(
                                 fontSize: 14,
-                                color: isDark ? Colors.white38 : Colors.grey[500],
+                                color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                               ),
                             ),
                           ],

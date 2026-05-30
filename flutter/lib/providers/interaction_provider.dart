@@ -29,8 +29,16 @@ class InteractionProvider extends ChangeNotifier {
       final online = await _api.checkHealth();
       _isServerOnline = online;
       notifyListeners();
-    } catch (_) {
+    } catch (e) {
+      print('Failed to check server health in provider: $e');
       _isServerOnline = false;
+      notifyListeners();
+    }
+  }
+
+  void setServerOnline(bool online) {
+    if (_isServerOnline != online) {
+      _isServerOnline = online;
       notifyListeners();
     }
   }
@@ -54,6 +62,7 @@ class InteractionProvider extends ChangeNotifier {
     try {
       final result = await _api.checkInteraction(drugA, drugB);
       _currentResult = result;
+      _isServerOnline = true; // Got successful result, server is online!
 
       // maintain history (most recent first), max 20
       _history.insert(0, result);
@@ -74,6 +83,10 @@ class InteractionProvider extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = e.toString().replaceFirst('Exception: ', '');
+      // If we get a network connection error (e.g. timeout or socket error), mark server offline
+      if (e.toString().contains('timed out') || e.toString().contains('Failed to check interaction')) {
+        _isServerOnline = false;
+      }
       notifyListeners();
     }
   }

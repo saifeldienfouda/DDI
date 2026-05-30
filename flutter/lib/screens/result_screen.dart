@@ -6,6 +6,7 @@ import '../models/interaction_result.dart';
 import '../utils/constants.dart';
 import '../utils/theme.dart';
 import '../utils/localization.dart';
+import '../utils/translation_helper.dart';
 import '../providers/theme_provider.dart';
 import '../providers/language_provider.dart';
 import 'chat_screen.dart';
@@ -144,11 +145,17 @@ class _ResultScreenState extends State<ResultScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              color.withOpacity(isDark ? 0.2 : 0.12),
-              Theme.of(context).scaffoldBackgroundColor,
-              color.withOpacity(isDark ? 0.1 : 0.06),
-            ],
+            colors: isDark
+                ? [
+                    Color.lerp(color, AppTheme.darkBg, 0.85)!,
+                    AppTheme.darkBg,
+                    Color.lerp(color, AppTheme.darkBg, 0.9)!,
+                  ]
+                : [
+                    Color.lerp(color, AppTheme.lightBg, 0.88)!,
+                    AppTheme.lightBg,
+                    Color.lerp(color, AppTheme.lightBg, 0.94)!,
+                  ],
             stops: const [0.0, 0.5, 1.0],
           ),
         ),
@@ -160,18 +167,18 @@ class _ResultScreenState extends State<ResultScreen>
               floating: false,
               pinned: true,
               elevation: 0,
-              backgroundColor: Colors.transparent,
+              backgroundColor: isDark ? AppTheme.darkBg.withOpacity(0.85) : AppTheme.lightBg.withOpacity(0.85),
               systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
               leading: IconButton(
                 icon: Icon(
                   context.isArabic ? Icons.arrow_forward_rounded : Icons.arrow_back_rounded, 
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                 ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               actions: [
                 IconButton(
-                  icon: Icon(Icons.share_rounded, color: isDark ? Colors.white : Colors.black87),
+                   icon: Icon(Icons.share_rounded, color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -193,7 +200,7 @@ class _ResultScreenState extends State<ResultScreen>
                 title: Text(
                   context.translate('interaction_analysis'),
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -201,7 +208,6 @@ class _ResultScreenState extends State<ResultScreen>
               ),
             ),
 
-            // Content
             SliverToBoxAdapter(
               child: FadeTransition(
                 opacity: _fadeAnimation,
@@ -210,18 +216,15 @@ class _ResultScreenState extends State<ResultScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Drug Pair Card with Animation
                       ScaleTransition(
                         scale: _scaleAnimation,
                         child: _buildDrugPairCard(),
                       ),
                       const SizedBox(height: 24),
 
-                      // Risk Score Circle
                       _buildRiskScoreCard(color),
                       const SizedBox(height: 24),
 
-                      // Severity Alert
                       _buildSeverityAlert(color),
                       const SizedBox(height: 24),
 
@@ -260,18 +263,11 @@ class _ResultScreenState extends State<ResultScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppTheme.primaryColor.withOpacity(isDark ? 0.2 : 0.1),
-            AppTheme.primaryColor.withOpacity(isDark ? 0.1 : 0.05),
-          ],
-        ),
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: AppTheme.primaryColor.withOpacity(isDark ? 0.3 : 0.2),
-          width: 2,
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+          width: 1.5,
         ),
       ),
       child: Column(
@@ -295,10 +291,10 @@ class _ResultScreenState extends State<ResultScreen>
               Expanded(
                 child: Text(
                   context.translate('drug_combination'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : Colors.black54,
+                   style: TextStyle(
+                     fontSize: 16,
+                     fontWeight: FontWeight.w600,
+                     color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                   ),
                 ),
               ),
@@ -307,23 +303,23 @@ class _ResultScreenState extends State<ResultScreen>
           const SizedBox(height: 16),
           Text(
             widget.result.drugPair,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-              color: isDark ? Colors.white : Colors.black87,
+             style: TextStyle(
+               fontSize: 24,
+               fontWeight: FontWeight.bold,
+               height: 1.3,
+               color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
             ),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.access_time_rounded, size: 16, color: isDark ? Colors.white38 : Colors.black45),
-              const SizedBox(width: 6),
-              Text(
-                _formatTimestamp(widget.result.timestamp),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark ? Colors.white38 : Colors.black45,
+               Icon(Icons.access_time_rounded, size: 16, color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted),
+               const SizedBox(width: 6),
+               Text(
+                 _formatTimestamp(widget.result.timestamp),
+                 style: TextStyle(
+                   fontSize: 14,
+                   color: isDark ? AppTheme.darkTextMuted : AppTheme.lightTextMuted,
                 ),
               ),
             ],
@@ -344,11 +340,14 @@ class _ResultScreenState extends State<ResultScreen>
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(isDark ? 0.15 : 0.1),
+            color: color.withOpacity(isDark ? 0.1 : 0.08),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -519,7 +518,11 @@ class _ResultScreenState extends State<ResultScreen>
       icon: Icons.info_outline_rounded,
       iconColor: const Color(0xFF3B82F6),
       title: context.isArabic ? 'شرح التفاعل الدوائي' : 'Description',
-      content: widget.result.description,
+      content: TranslationHelper.translateDescription(
+        widget.result.description,
+        widget.result.drugPair,
+        context.isArabic,
+      ),
     );
   }
 
@@ -528,20 +531,31 @@ class _ResultScreenState extends State<ResultScreen>
       icon: Icons.science_rounded,
       iconColor: const Color(0xFF8B5CF6),
       title: context.translate('mechanism_title'),
-      content: widget.result.mechanism,
+      content: TranslationHelper.translateMechanism(
+        widget.result.mechanism,
+        context.isArabic,
+      ),
     );
   }
 
   Widget _buildRecommendationsCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final recommendations = TranslationHelper.translateRecommendations(
+      widget.result.recommendations,
+      context.isArabic,
+    );
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.15 : 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -571,14 +585,14 @@ class _ResultScreenState extends State<ResultScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          ...widget.result.recommendations.asMap().entries.map((entry) {
+          ...recommendations.asMap().entries.map((entry) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -607,7 +621,7 @@ class _ResultScreenState extends State<ResultScreen>
                       style: TextStyle(
                         fontSize: 15,
                         height: 1.6,
-                        color: isDark ? Colors.white70 : Colors.black87,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                       ),
                     ),
                   ),
@@ -622,14 +636,22 @@ class _ResultScreenState extends State<ResultScreen>
 
   Widget _buildSourcesCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sources = TranslationHelper.translateSources(
+      widget.result.sources,
+      context.isArabic,
+    );
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.15 : 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -659,14 +681,14 @@ class _ResultScreenState extends State<ResultScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          ...widget.result.sources.map((source) {
+          ...sources.map((source) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
@@ -682,7 +704,7 @@ class _ResultScreenState extends State<ResultScreen>
                       source,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? Colors.white70 : Colors.black87,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
                       ),
                     ),
                   ),
@@ -705,11 +727,14 @@ class _ResultScreenState extends State<ResultScreen>
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: isDark ? AppTheme.darkSurfaceVariant : AppTheme.lightSurface,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppTheme.darkBorder : AppTheme.lightBorder,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+            color: Colors.black.withOpacity(isDark ? 0.15 : 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -735,7 +760,7 @@ class _ResultScreenState extends State<ResultScreen>
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
                   ),
                 ),
               ),
@@ -747,7 +772,7 @@ class _ResultScreenState extends State<ResultScreen>
             style: TextStyle(
               fontSize: 15,
               height: 1.6,
-              color: isDark ? Colors.white70 : Colors.black87,
+              color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
               letterSpacing: 0.2,
             ),
             textAlign: context.isArabic ? TextAlign.right : TextAlign.left,
