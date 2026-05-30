@@ -46,6 +46,22 @@ flutter {
     source = "../.."
 }
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "androidx.activity") {
+                useVersion("1.9.3")
+            }
+            if (requested.group == "androidx.core") {
+                useVersion("1.13.1")
+            }
+            if (requested.group == "androidx.navigationevent") {
+                useVersion("1.0.0")
+            }
+        }
+    }
+}
+
 tasks.configureEach {
     if (name.contains("CheckAarMetadata", ignoreCase = true)) {
         enabled = false
