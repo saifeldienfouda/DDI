@@ -386,7 +386,7 @@ async def check_interaction(drug_pair: DrugPair):
 @app.post("/scan-drugs", tags=["Prediction"])
 async def scan_drugs_ocr(file: UploadFile = File(...)):
     """
-    Extract drug names/active ingredients from an image upload using Gemini 1.5 Flash Vision REST API.
+    Extract drug names/active ingredients from an image upload using Gemini 2.5 Flash Vision REST API.
     """
     # Read file bytes
     image_bytes = await file.read()
@@ -405,6 +405,17 @@ async def scan_drugs_ocr(file: UploadFile = File(...)):
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={gemini_key}"
     
+    # Determine safe MIME type for Gemini
+    mime_type = file.content_type or "image/jpeg"
+    if mime_type == "application/octet-stream" or not mime_type.startswith("image/"):
+        ext = os.path.splitext(file.filename or "")[1].lower()
+        if ext in ['.png']:
+            mime_type = "image/png"
+        elif ext in ['.webp']:
+            mime_type = "image/webp"
+        else:
+            mime_type = "image/jpeg"
+
     try:
         b64_image = base64.b64encode(image_bytes).decode("utf-8")
         
@@ -417,7 +428,7 @@ async def scan_drugs_ocr(file: UploadFile = File(...)):
                         },
                         {
                             "inlineData": {
-                                "mimeType": file.content_type or "image/jpeg",
+                                "mimeType": mime_type,
                                 "data": b64_image
                             }
                         }
